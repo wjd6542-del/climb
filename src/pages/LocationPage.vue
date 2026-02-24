@@ -15,9 +15,6 @@
       <!-- 검색 영역 -->
       <div class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label class="block mb-1 text-sm font-medium text-gray-700">
-            시도
-          </label>
           <SearchSelect
             v-model="search.sido"
             :options="SIDO"
@@ -31,9 +28,6 @@
 
         <!-- 검색어 -->
         <div>
-          <label class="block mb-1 text-sm font-medium text-gray-700">
-            검색어
-          </label>
           <input
             v-model="search.keyword"
             class="w-full border rounded px-3 py-2 text-sm min-h-[42px]"
@@ -45,7 +39,7 @@
         <!-- 클라이밍 구분 -->
         <MultiCheck
           placeholder="구분을 선택하세요"
-          label="클라이밍 구분"
+          label=""
           :items="GYM_TYPES"
           v-model="search.types"
           textKey="name"
@@ -55,7 +49,7 @@
         <!-- 편의시설 -->
         <MultiCheck
           placeholder="편의시설을 선택하세요"
-          label="편의시설"
+          label=""
           :items="AMENITIES"
           v-model="search.amenities"
           textKey="text"
@@ -63,9 +57,6 @@
         />
 
         <div>
-          <label class="block mb-1 text-sm font-medium text-gray-700">
-            지도확인
-          </label>
           <button
             class="px-3 py-1.5 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
             @click="openMapModal = true"
