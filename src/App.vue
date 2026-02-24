@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50">
     <Header @open-bookmark="bookmarkOpen = true" />
 
-    <main class="max-w-5xl mx-auto p-4 relative">
+    <main class="max-w-7xl mx-auto p-4 relative">
       <RouterView v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
           <component :is="Component" :key="route.fullPath" />
