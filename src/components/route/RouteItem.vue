@@ -7,7 +7,9 @@
       <div class="p-4">
         <!-- 상단 -->
         <div class="flex justify-between items-start mb-1">
-          <h3 class="font-semibold text-lg" @click="goDetail"></h3>
+          <h3 class="font-semibold text-lg" @click="goDetail">
+            {{ rout.gym.name }}
+          </h3>
           <div class="flex items-center gap-3">
             <!-- 🔥 공용 드롭다운 -->
             <BaseDropdown
@@ -25,15 +27,27 @@
           </div>
         </div>
 
+        <div class="max-w-none text-sm mb-2">
+          난이도 : {{ rout.difficulty }} {{ rout.route_name }}
+        </div>
+
+        <!-- 실내외 구분 -->
+        <div class="flex flex-wrap gap-2 mt-2">
+          <div
+            class="flex items-center gap-1 px-3 py-1 text-xs bg-blue-50 text-gray-600 rounded-full"
+          >
+            <span>{{ climb_type_map[rout.climb_type] }}</span>
+          </div>
+
+          <div
+            class="flex items-center gap-1 px-3 py-1 text-xs bg-blue-50 text-gray-600 rounded-full"
+          >
+            <span>{{ environment_map[rout.environment] }}</span>
+          </div>
+        </div>
+
         <!-- 내용 -->
         <div class="prose max-w-none text-sm mb-2" v-html="rout.memo"></div>
-
-        <div class="text-sm text-gray-500 mb-2">장소 : {{ rout.gym.name }}</div>
-
-        <div class="text-sm text-gray-500 mb-2">
-          <i class="fa-solid fa-calendar"></i>
-          <DateTime :value="rout.created_at" />
-        </div>
 
         <!-- 이미지 -->
         <div v-if="rout.images?.length" class="flex flex-wrap gap-3 mt-3">
@@ -92,6 +106,29 @@ export default {
 
   data() {
     return {
+      // 타입
+      climb_type_map: {
+        LEAD: "리드",
+        BOULDER: "볼더링",
+      },
+
+      // 내외 구분
+      environment_map: {
+        INDOOR: "내부",
+        OUTDOOR: "외부",
+        NATURE: "자연",
+      },
+
+      rock_type_map: {
+        GRANITE: "화강암",
+        LIMESTONE: "석회암",
+        SANDSTONE: "사암",
+        BASALT: "현무암",
+        GNEISS: "편마암",
+        CONGLOMERATE: "역암",
+        OTHER: "기타",
+      },
+
       selectedImage: null,
       actionItems: [
         {
