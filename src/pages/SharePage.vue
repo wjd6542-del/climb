@@ -91,20 +91,28 @@
         <!-- 위치 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">위치</label>
-          <SearchSelect
-            v-model="form.gym_id"
-            :options="gymList"
-            labelKey="name"
-            valueKey="id"
-            placeholder="장소 선택"
-            class="bg-white border border-gray-200 rounded-lg"
-          />
+          <div class="flex-1">
+            <SearchSelect
+              v-model="form.gym_id"
+              :options="gymList"
+              labelKey="name"
+              valueKey="id"
+              placeholder="장소 선택"
+              class="bg-white border border-gray-200 rounded-lg"
+            />
+          </div>
         </div>
 
         <!-- 제목 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">제목</label>
-          <input v-model="form.title" class="w-full border rounded px-3 py-2" />
+          <div class="flex-1">
+            <input
+              v-model="form.title"
+              placeholder="제목 입력"
+              class="w-full border rounded px-3 py-2"
+            />
+          </div>
         </div>
 
         <!-- 내용 -->
@@ -118,7 +126,7 @@
         <!-- 별점 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">별점</label>
-          <div class="flex gap-1 text-lg">
+          <div class="flex text-lg">
             <i
               v-for="n in 5"
               :key="n"
@@ -136,13 +144,9 @@
         <!-- 파일 업로드 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">이미지</label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            class="w-full border rounded px-3 py-2"
-            @change="handleFiles"
-          />
+          <div class="flex-1">
+            <BaseImage :multiple="true" @change="handleFiles" />
+          </div>
         </div>
 
         <!-- 기존 이미지 -->
@@ -207,10 +211,18 @@ import Editor from "@/components/common/Editor.vue";
 import DateRangePicker from "@/components/common/DateRangePicker.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import PostList from "@/components/gymPost/PostList.vue";
+import BaseImage from "@/components/common/BaseImage.vue";
 
 export default {
   name: "InfoShare",
-  components: { PostList, SearchSelect, Editor, DateRangePicker, BaseModal },
+  components: {
+    PostList,
+    SearchSelect,
+    Editor,
+    DateRangePicker,
+    BaseModal,
+    BaseImage,
+  },
 
   data() {
     return {
