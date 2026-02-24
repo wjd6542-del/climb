@@ -101,21 +101,11 @@
           </div>
           <!-- 시도 리스트 -->
           <div class="space-y-3">
-            <div
-              v-for="row in sidoList"
-              :key="row.sido"
-              class="flex items-center justify-between px-5 py-4 bg-white rounded-xl shadow-sm border hover:shadow-md transition"
-            >
-              <!-- 시도명 -->
-              <div class="text-sm font-semibold text-gray-800">
-                {{ row.sido }}
-              </div>
-
-              <!-- 카운트 -->
-              <div class="text-sm font-bold text-blue-600">
-                {{ row.count }}건
-              </div>
-            </div>
+            <v-chart
+              class="w-full h-[350px]"
+              :option="chartOption"
+              autoresize
+            />
           </div>
         </section>
       </div>
@@ -164,6 +154,7 @@ export default {
       list: [],
       sidoList: [],
       routList: [],
+      chartOption: null,
       keyword: "", // 🔥 추가
       openMapModal: false,
     };
@@ -214,6 +205,39 @@ export default {
     async loadSidoList() {
       const res = await api.post("/api/gyms/sidoGroup");
       this.sidoList = res.data;
+
+      // 정렬 처리
+      this.sidoList.sort((a, b) => a.count - b.count);
+
+      this.chartOption = {
+        tooltip: {
+          trigger: "axis",
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "3%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          data: this.sidoList.map((d) => d.sido),
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            name: "짐 수",
+            type: "pie",
+            radius: ["40%", "70%"],
+            data: this.sidoList.map((d) => ({
+              value: d.count,
+              name: d.sido,
+            })),
+          },
+        ],
+      };
     },
 
     async loadRoutList() {

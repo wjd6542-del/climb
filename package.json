@@ -21,9 +21,11 @@
     "ag-grid-community": "^33.3.2",
     "ag-grid-vue3": "^33.3.2",
     "axios": "^1.13.4",
+    "echarts": "^6.0.0",
     "pinia": "^3.0.4",
     "v-calendar": "^3.1.2",
     "vue": "^3.4.0",
+    "vue-echarts": "^8.0.1",
     "vue-router": "^4.3.0",
     "vue-toastification": "^2.0.0-rc.5",
     "zod": "^4.3.6"

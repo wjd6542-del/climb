@@ -33,10 +33,44 @@ import { ModuleRegistry, AllCommunityModule, RowSelectionModule } from "ag-grid-
 ModuleRegistry.registerModules([AllCommunityModule, RowSelectionModule]);
 
 
+
+import VueECharts from "vue-echarts"
+import * as echarts from "echarts/core"
+
+import {
+	BarChart,
+	LineChart,
+	PieChart
+} from "echarts/charts"
+
+import {
+	TitleComponent,
+	TooltipComponent,
+	GridComponent,
+	LegendComponent
+} from "echarts/components"
+
+import { CanvasRenderer } from "echarts/renderers"
+
+echarts.use([
+	BarChart,
+	LineChart,
+	PieChart,
+	TitleComponent,
+	TooltipComponent,
+	GridComponent,
+	LegendComponent,
+	CanvasRenderer
+])
+
+
+
 const pinia = createPinia();
 
 const app = createApp(App)
 app.component('Toggle', Toggle)
+app.component("v-chart", VueECharts)
+
 app.use(VCalendar, {});
 
 // 설정 먼저 적용
@@ -46,13 +80,8 @@ app.use(Toast, {
 	closeOnClick: true,
 	pauseOnHover: true,
 });
-
 app.config.globalProperties.$toast = useToast();
 app.use(router)
 app.use(AlertPlugin)
 app.use(pinia);
-
-
-
-
 app.mount('#app')
