@@ -1,25 +1,58 @@
 ﻿<template>
   <div>
-    <div class="flex gap-2">
-      <!-- 상단 액션 -->
-      <button
-        @click="addRow"
-        class="mb-2 px-2 py-1 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
+    <!-- 🔎 검색 영역 -->
+    <div class="bg-white border rounded-xl shadow-sm p-4 mb-4">
+      <div
+        class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
       >
-        <i class="fa-solid fa-plus"></i> {{ $t("추가") }}
-      </button>
-      <button
-        @click="saveRows"
-        class="mb-2 px-2 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600 gap-1"
-      >
-        <i class="fa-solid fa-save"></i> {{ $t("저장") }}
-      </button>
-      <button
-        @click="deleteRows"
-        class="mb-2 px-2 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600 gap-1"
-      >
-        <i class="fa-solid fa-trash"></i> {{ $t("삭제") }}
-      </button>
+        <!-- 좌측 : 키 선택 -->
+        <div class="flex-1 max-w-[750px]">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-sm font-semibold text-gray-700">
+              설정 키 선택
+            </label>
+            <span v-if="search.keys?.length" class="text-xs text-blue-600">
+              {{ search.keys.length }}개 선택
+            </span>
+          </div>
+
+          <MultiCheck
+            placeholder="키를 선택하세요"
+            :items="KEYS"
+            v-model="search.keys"
+            textKey="key"
+            idKey="key"
+            @change="loadList"
+          />
+        </div>
+
+        <!-- 우측 : 액션 버튼 -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            @click="addRow"
+            class="px-3 py-1.5 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-plus"></i>
+            {{ $t("추가") }}
+          </button>
+
+          <button
+            @click="saveRows"
+            class="px-3 py-1.5 text-sm rounded-lg bg-green-500 text-white hover:bg-green-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-save"></i>
+            {{ $t("저장") }}
+          </button>
+
+          <button
+            @click="deleteRows"
+            class="px-3 py-1.5 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-trash"></i>
+            {{ $t("삭제") }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- AG Grid -->
@@ -43,15 +76,21 @@
 <script>
 import api from "@/lib/api.js";
 import { AgGridVue } from "ag-grid-vue3";
+import MultiCheck from "@/components/common/MultiCheck.vue";
 
 export default {
   name: "settingsTable",
-  components: { AgGridVue },
+  components: { AgGridVue, MultiCheck },
 
   data() {
     return {
       gridApi: null,
       columnApi: null,
+
+      KEYS: [],
+      search: {
+        keys: [],
+      },
 
       rowData: [],
       columnDefs: [],
@@ -87,10 +126,6 @@ export default {
     };
   },
 
-  mounted() {
-    this.loadList();
-  },
-
   methods: {
     onCellEditingStopped(params) {
       params.api.setNodesSelected({
@@ -113,7 +148,9 @@ export default {
      * ========================= */
     async loadList() {
       this.rowData = [];
-      const res = await api.post("/api/settings/list");
+
+      console.log(this.search);
+      const res = await api.post("/api/settings/list", this.search);
 
       this.rowData = res.data;
 
@@ -192,7 +229,6 @@ export default {
           return;
         }
 
-        console.log("신규 추가 확인", rows);
         await api.post("/api/settings/batchSave", rows);
         this.$toast.success("저장 완료");
         this.loadList();
@@ -226,6 +262,18 @@ export default {
         this.$toast.error("삭제 중 오류가 발생했습니다");
       }
     },
+
+    // 키리스트 출력
+    async loadKeyList() {
+      const res = await api.post("/api/settings/keyGroup");
+      this.KEYS = res.data;
+      console.log(res.data);
+    },
+  },
+
+  mounted() {
+    this.loadList();
+    this.loadKeyList();
   },
 };
 </script>
