@@ -28,14 +28,28 @@
           />
         </div>
 
-        <!-- 클라이밍 구분검색 -->
-        <div class="w-full md:w-[220px]"></div>
+        <!-- 내외 구분 -->
+        <div class="w-full md:w-[220px]">
+          <SearchSelect
+            v-model="search.environment"
+            :options="environment_type"
+            labelKey="text"
+            valueKey="value"
+            placeholder="내외 구분을 선택하세요"
+            class="bg-white border border-gray-200 rounded-lg h-[40px]"
+            @change="resetAndSearch"
+          />
+        </div>
 
-        <div class="w-full md:w-[200px]">
-          <input
-            v-model="search.keyword"
-            class="w-full border rounded px-3 py-2 text-sm min-h-[42px]"
-            placeholder="제목 검색"
+        <!-- 클라이밍 구분검색 -->
+        <div class="w-full md:w-[220px]">
+          <SearchSelect
+            v-model="search.climb_type"
+            :options="climb_type"
+            labelKey="text"
+            valueKey="value"
+            placeholder="구분을 선택하세요"
+            class="bg-white border border-gray-200 rounded-lg h-[40px]"
             @change="resetAndSearch"
           />
         </div>
@@ -328,7 +342,7 @@ export default {
 
       list: [] as any[],
       // 검색
-      search: { keyword: "", gym_id: "" },
+      search: { keyword: "", gym_id: "", climb_type: "", environment: "" },
 
       // 등록폼
       form: this.initForm() || {},
@@ -407,14 +421,14 @@ export default {
         const payload: any = {
           gym_id: this.search.gym_id,
           keyword: this.search.keyword,
+          climb_type: this.search.climb_type,
+          environment: this.search.environment,
           page: this.page,
           limit: this.limit,
         };
 
         const res = await api.post("/api/route/pageList", payload);
         const data = res.data || [];
-
-        console.log("로드 데이터 확인!!! ", data);
 
         if (append) {
           this.list = [...this.list, ...data];
