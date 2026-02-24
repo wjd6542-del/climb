@@ -9,7 +9,7 @@
 
       <div
         ref="modal"
-        class="relative bg-white rounded-xl shadow-xl w-full"
+        class="relative bg-white rounded-xl shadow-xl w-full overflow-hidden"
         :class="widthClass"
         :style="modalStyle"
         @click.stop
@@ -42,7 +42,10 @@
         </div>
 
         <!-- footer -->
-        <div v-if="$slots.footer" class="px-5 py-4 border-t bg-gray-50">
+        <div
+          v-if="$slots.footer"
+          class="px-5 py-4 border-t bg-gray-50 rounded-b-xl"
+        >
           <slot name="footer" />
         </div>
       </div>
@@ -90,6 +93,8 @@ export default {
       switch (this.width) {
         case "sm":
           return "max-w-sm";
+        case "md":
+          return "max-w-md";
         case "lg":
           return "max-w-3xl";
         case "xl":

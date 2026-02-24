@@ -96,222 +96,117 @@
       </div>
     </div>
 
-    <!-- 상세 모달 -->
-    <div
-      v-if="openDetailModal"
-      @click.self="openDetailModal = false"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-      <div
-        class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6"
-        @click.stop
-      >
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">
-            <i class="fa-solid fa-file-lines"></i> 상세정보
-          </h2>
-          <button @click="openDetailModal = false">✕</button>
-        </div>
-
-        <!-- 내용 영역 -->
-        <div class="space-y-4 text-sm">
-          <!-- 장소명 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">장소명</label>
-            <input
-              v-model="default_d_form.name"
-              class="flex-1 border rounded px-3 py-2 text-sm"
-              placeholder=""
-              disabled="true"
-            />
-          </div>
-
-          <!-- 내용 -->
-          <div class="flex items-start gap-4">
-            <label class="w-28 text-sm font-medium mt-2">정보</label>
-            <div class="flex-1">
-              <Editor v-model="default_d_form.description" />
-            </div>
-          </div>
-
-          <!-- 일일이용권 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">일일 이용금액</label>
-            <input
-              type="number"
-              v-model="default_d_form.day_pass_price"
-              class="flex-1 border rounded px-3 py-2 text-sm"
-            />
-          </div>
-
-          <!-- 파일 업로드 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">이미지</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              class="flex-1 border rounded px-3 py-2"
-              @change="handleFiles"
-            />
-          </div>
-
-          <!-- 기존 이미지 -->
-          <div
-            v-if="isDetailEdit && existingImages.length"
-            class="grid grid-cols-3 gap-3"
-          >
-            <div v-for="img in existingImages" :key="img.id" class="relative">
-              <img
-                :src="`${apiUrl}${img.file_url}`"
-                class="w-full h-28 object-cover rounded"
-              />
-              <button
-                @click="removeExistingImage(img)"
-                class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-
-          <!-- 신규 이미지 -->
-          <div class="grid grid-cols-3 gap-3">
-            <div v-for="(img, i) in newPreviews" :key="i" class="relative">
-              <img :src="img" class="w-full h-28 object-cover rounded" />
-              <button
-                @click="removeNewImage(i)"
-                class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 mt-6">
-          <button
-            class="px-4 py-2 text-sm border rounded"
-            @click="openDetailModal = false"
-          >
-            닫기
-          </button>
-          <button
-            class="px-4 py-2 text-sm bg-blue-500 text-white rounded"
-            @click="saveDetail"
-          >
-            저장
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- 등록 모달 -->
-    <div
-      v-if="openModal"
-      @click.self="openModal = false"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    <BaseModal
+      v-model="openModal"
+      :title="'지도 확인'"
+      width="lg"
+      :closeOnOverlay="false"
     >
-      <div
-        class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6"
-        @click.stop
-      >
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">
-            <i class="fa-solid fa-plus"></i> 클라이밍 장소 등록
-          </h2>
-          <button @click="openModal = false">✕</button>
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          <i class="fa-solid fa-plus"></i> 클라이밍 장소 등록
+        </h2>
+      </template>
+      <div class="space-y-4 text-sm">
+        <!-- 짐 이름 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">짐 이름</label>
+          <input
+            v-model="form.name"
+            class="flex-1 border rounded px-3 py-2 text-sm"
+            placeholder="예: 더클라임 성수"
+          />
         </div>
 
-        <div class="space-y-4 text-sm">
-          <!-- 짐 이름 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">짐 이름</label>
-            <input
-              v-model="form.name"
-              class="flex-1 border rounded px-3 py-2 text-sm"
-              placeholder="예: 더클라임 성수"
-            />
-          </div>
+        <!-- 주소 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">주소</label>
+          <input
+            v-model="form.address"
+            class="flex-1 border rounded px-3 py-2 text-sm"
+            placeholder="주소 검색"
+          />
+          <button
+            class="px-3 py-2 text-sm rounded bg-gray-100 hover:bg-gray-200"
+            @click="searchAddress"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>주소검색
+          </button>
+        </div>
+        <!-- 상세주소 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">상세주소</label>
+          <input
+            v-model="form.address_detail"
+            class="flex-1 border rounded px-3 py-2 text-sm"
+            placeholder="상세주소"
+          />
+        </div>
 
-          <!-- 주소 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">주소</label>
-            <input
-              v-model="form.address"
-              class="flex-1 border rounded px-3 py-2 text-sm"
-              placeholder="주소 검색"
-            />
-            <button
-              class="px-3 py-2 text-sm rounded bg-gray-100 hover:bg-gray-200"
-              @click="searchAddress"
-            >
-              <i class="fa-solid fa-magnifying-glass"></i>주소검색
-            </button>
-          </div>
-          <!-- 상세주소 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">상세주소</label>
-            <input
-              v-model="form.address_detail"
-              class="flex-1 border rounded px-3 py-2 text-sm"
-              placeholder="상세주소"
+        <!-- 짐 타입 -->
+        <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
+          <label class="text-sm font-medium leading-8">짐 타입</label>
+          <div class="flex flex-wrap gap-2">
+            <Toggle
+              v-for="t in GYM_TYPES"
+              :key="t.id"
+              :label="t.name"
+              v-model="form.types"
+              :value="t.id"
             />
           </div>
+        </div>
 
-          <!-- 짐 타입 -->
-          <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
-            <label class="text-sm font-medium leading-8">짐 타입</label>
+        <!-- 편의시설 -->
+        <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
+          <label class="text-sm font-medium leading-8">편의시설</label>
+          <div>
             <div class="flex flex-wrap gap-2">
               <Toggle
-                v-for="t in GYM_TYPES"
-                :key="t.id"
-                :label="t.name"
-                v-model="form.types"
-                :value="t.id"
+                v-for="a in AMENITIES"
+                :key="a.id"
+                :label="a.text"
+                v-model="form.amenities"
+                :value="a.id"
               />
             </div>
           </div>
+        </div>
 
-          <!-- 편의시설 -->
-          <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
-            <label class="text-sm font-medium leading-8">편의시설</label>
-            <div>
-              <div class="flex flex-wrap gap-2">
-                <Toggle
-                  v-for="a in AMENITIES"
-                  :key="a.id"
-                  :label="a.text"
-                  v-model="form.amenities"
-                  :value="a.id"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- 운영시간 -->
-          <div class="flex items-start gap-4">
-            <label class="w-28 text-sm font-medium mt-1">운영시간</label>
-            <div class="flex-1 space-y-1 text-sm">
-              <TimeRow label="평일" v-model="form.hours.weekday" />
-              <TimeRow label="주말" v-model="form.hours.weekend" />
-              <TimeRow label="공휴일" v-model="form.hours.holiday" />
-            </div>
-          </div>
-
-          <!-- 활성 여부 -->
-          <div class="flex items-center gap-4">
-            <label class="w-28 text-sm font-medium">운영 여부</label>
-            <input
-              type="checkbox"
-              v-model="form.is_active"
-              true-value="y"
-              false-value="n"
-            />
-            <span class="text-sm text-gray-600">운영여부</span>
+        <!-- 운영시간 -->
+        <div class="flex items-start gap-4">
+          <label class="w-28 text-sm font-medium mt-1">운영시간</label>
+          <div class="flex-1 space-y-1 text-sm">
+            <TimeRow label="평일" v-model="form.hours.weekday" />
+            <TimeRow label="주말" v-model="form.hours.weekend" />
+            <TimeRow label="공휴일" v-model="form.hours.holiday" />
           </div>
         </div>
 
+        <!-- 활성 여부 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">운영 여부</label>
+          <button
+            type="button"
+            @click="toggleActive"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300"
+            :class="form.is_active === 'y' ? 'bg-blue-500' : 'bg-gray-300'"
+          >
+            <span
+              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300"
+              :class="
+                form.is_active === 'y' ? 'translate-x-6' : 'translate-x-1'
+              "
+            />
+          </button>
+
+          <span class="text-sm text-gray-600">
+            {{ form.is_active === "y" ? "운영중" : "운영중지" }}
+          </span>
+        </div>
+      </div>
+      <template #footer>
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="px-4 py-2 text-sm border rounded"
@@ -326,43 +221,140 @@
             저장
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </BaseModal>
 
-    <!-- 맵모달 -->
-    <div
-      v-if="openMapModal"
-      @click.self="openMapModal = false"
-      class="fixed inset-0 z-50 bg-white flex flex-col"
+    <!-- 상세 모달 -->
+    <BaseModal
+      v-model="openDetailModal"
+      :title="'상세정보'"
+      width="md"
+      :closeOnOverlay="false"
     >
-      <div class="bg-white rounded-lg shadow-lg w-full p-6" @click.stop>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">
-            <i class="fa-solid fa-map"></i> 지도 확인
-          </h2>
-          <button @click="openMapModal = false">✕</button>
-        </div>
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          <i class="fa-solid fa-file-lines"></i> 상세정보
+        </h2>
+      </template>
 
-        <div class="space-y-4">
-          <KakaoMap
-            :markers="GYM_MAP"
-            class="h-[800px] rounded-2xl shadow-xl"
+      <!-- 내용 영역 -->
+      <div class="space-y-4 text-sm">
+        <!-- 장소명 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">장소명</label>
+          <input
+            v-model="default_d_form.name"
+            class="flex-1 border rounded px-3 py-2 text-sm"
+            placeholder=""
+            disabled="true"
           />
         </div>
+
+        <!-- 내용 -->
+        <div class="flex items-start gap-4">
+          <label class="w-28 text-sm font-medium mt-2">정보</label>
+          <div class="flex-1">
+            <Editor v-model="default_d_form.description" />
+          </div>
+        </div>
+
+        <!-- 일일이용권 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">일일 이용금액</label>
+          <input
+            type="number"
+            v-model="default_d_form.day_pass_price"
+            class="flex-1 border rounded px-3 py-2 text-sm"
+          />
+        </div>
+
+        <!-- 파일 업로드 -->
+        <div class="flex items-center gap-4">
+          <label class="w-28 text-sm font-medium">이미지</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            class="flex-1 border rounded px-3 py-2"
+            @change="handleFiles"
+          />
+        </div>
+
+        <!-- 기존 이미지 -->
+        <div
+          v-if="isDetailEdit && existingImages.length"
+          class="grid grid-cols-3 gap-3"
+        >
+          <div v-for="img in existingImages" :key="img.id" class="relative">
+            <img
+              :src="`${apiUrl}${img.file_url}`"
+              class="w-full h-28 object-cover rounded"
+            />
+            <button
+              @click="removeExistingImage(img)"
+              class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
+            >
+              삭제
+            </button>
+          </div>
+        </div>
+
+        <!-- 신규 이미지 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div v-for="(img, i) in newPreviews" :key="i" class="relative">
+            <img :src="img" class="w-full h-28 object-cover rounded" />
+            <button
+              @click="removeNewImage(i)"
+              class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
+            >
+              삭제
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2 mt-6">
+          <button
+            class="px-4 py-2 text-sm border rounded"
+            @click="openDetailModal = false"
+          >
+            닫기
+          </button>
+          <button
+            class="px-4 py-2 text-sm bg-blue-500 text-white rounded"
+            @click="saveDetail"
+          >
+            저장
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- 맵모달 -->
+    <BaseModal v-model="openMapModal" :title="'지도 확인'" width="full">
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          <i class="fa-solid fa-map"></i> 지도 확인
+        </h2>
+      </template>
+      <div class="space-y-4">
+        <KakaoMap :markers="GYM_MAP" class="h-[800px] rounded-2xl shadow-xl" />
+      </div>
+    </BaseModal>
   </div>
 </template>
 
 <script lang="ts">
+import { useBookmarkStore } from "@/stores/bookmarkStore";
 import api from "@/lib/api.js";
 import TimeRow from "@/components/common/TimeRow.vue";
 import GymList from "@/components/gym/GymList.vue";
 import MultiCheck from "@/components/common/MultiCheck.vue";
 import KakaoMap from "@/components/common/KakaoMap.vue";
-import { useBookmarkStore } from "@/stores/bookmarkStore";
 import Editor from "@/components/common/Editor.vue";
 import SearchSelect from "@/components/common/SearchSelect.vue";
+import BaseModal from "@/components/common/BaseModal.vue";
 
 export default {
   name: "LocationList",
@@ -379,6 +371,7 @@ export default {
     KakaoMap,
     Editor,
     SearchSelect,
+    BaseModal,
   },
 
   data() {
@@ -440,6 +433,10 @@ export default {
   },
 
   methods: {
+    toggleActive() {
+      this.form.is_active = this.form.is_active === "y" ? "n" : "y";
+    },
+
     removeNewImage(index: number) {
       this.newFiles.splice(index, 1);
       this.newPreviews.splice(index, 1);
@@ -480,6 +477,35 @@ export default {
       } catch (e) {
         this.$toast.error("저장 실패");
       }
+    },
+
+    // 주소 검색
+    searchAddress() {
+      new window.kakao.Postcode({
+        oncomplete: (data: any) => {
+          // 주소 문자열
+          const fullAddress = data.address;
+          const sido = data.sido;
+          const zonecode = data.zonecode;
+
+          this.form.address = fullAddress;
+          this.form.post = zonecode;
+          this.form.sido = sido;
+
+          // 지오코딩 → 좌표 변환
+          if (this.geocoder) {
+            this.geocoder.addressSearch(
+              fullAddress,
+              (result: any, status: any) => {
+                if (status === window.kakao.maps.services.Status.OK) {
+                  this.form.lat = parseFloat(result[0].y);
+                  this.form.lon = parseFloat(result[0].x);
+                }
+              },
+            );
+          }
+        },
+      }).open();
     },
 
     // 저장 처리
@@ -735,6 +761,10 @@ export default {
     await this.loadMapData();
 
     await this.loadList(false);
+
+    if (window.kakao && window.kakao.maps) {
+      this.geocoder = new window.kakao.maps.services.Geocoder();
+    }
 
     window.addEventListener("scroll", this.handleScroll);
   },
