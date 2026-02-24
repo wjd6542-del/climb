@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.list-enter-active,
+.list-leave-active {
+	transition: all 0.35s ease;
+}
+
+.list-enter-from {
+	opacity: 0;
+	transform: translateY(10px);
+}
+
+.list-enter-to {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.list-leave-from {
+	opacity: 1;
+}
+
+.list-leave-to {
+	opacity: 0;
+	transform: translateY(-10px);
+}
+
+.list-move {
+	transition: transform 0.35s ease;
+}
+
+.ag-theme-alpine .row-inactive {
+	@apply bg-red-100 text-red-700 !important;
+}

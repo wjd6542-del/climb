@@ -1,0 +1,50 @@
+﻿/* 테이블 전체 */
+.tabulator {
+	@apply text-sm text-gray-700;
+}
+
+/* 헤더 */
+.tabulator .tabulator-header {
+	@apply bg-gray-50 border-b border-gray-200;
+}
+
+.tabulator .tabulator-col {
+	@apply bg-gray-50 text-gray-600 font-semibold;
+}
+
+/* 헤더 텍스트 */
+.tabulator .tabulator-col-title {
+	@apply text-xs uppercase tracking-wide;
+}
+
+/* 행 */
+.tabulator .tabulator-row {
+	@apply border-b border-gray-100;
+}
+
+.tabulator .tabulator-row:hover {
+	@apply bg-gray-50;
+}
+
+/* 선택된 행 */
+.tabulator .tabulator-row.tabulator-selected {
+	@apply bg-blue-50;
+}
+
+/* 셀 */
+.tabulator .tabulator-cell {
+	@apply py-2 px-3;
+}
+
+/* 페이징 */
+.tabulator .tabulator-footer {
+	@apply bg-white border-t border-gray-200;
+}
+
+.tabulator .tabulator-page {
+	@apply text-sm px-3 py-1 border rounded hover:bg-gray-100;
+}
+
+.tabulator .tabulator-page.active {
+	@apply bg-blue-500 text-white border-blue-500;
+}
