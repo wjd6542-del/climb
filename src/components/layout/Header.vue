@@ -1,6 +1,6 @@
 <template>
   <header class="bg-white border-b shadow-sm relative z-50">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
       <!-- 로고 -->
       <RouterLink
         to="/search"
