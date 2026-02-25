@@ -47,7 +47,10 @@
           class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer flex justify-between"
           @click="select(item)"
         >
-          <span>{{ item[labelKey] }}</span>
+          <span>
+            <i v-if="item.icon" :class="item.icon"></i>
+            {{ item[labelKey] }}</span
+          >
 
           <i
             v-if="item[valueKey] === modelValue"
