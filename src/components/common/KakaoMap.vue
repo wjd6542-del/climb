@@ -138,6 +138,10 @@ export default {
           this.moveToMarker(item);
         });
 
+        const hasOutdoor = item.gymTypeMap?.some(
+          (map) => map.GymType?.name === "자연암벽",
+        );
+
         const overlay = new window.kakao.maps.CustomOverlay({
           position,
           content: `
@@ -153,6 +157,12 @@ export default {
           min-width:160px;
         ">
           <div style="font-weight:700;">
+			${
+        hasOutdoor
+          ? `<i class="text-green-300 fa-solid fa-mountain"></i>`
+          : `<i class="text-yellow-300 fa-solid fa-solid fa-hand-fist"></i>`
+      }
+			
             ${item.name}
           </div>
           ${
