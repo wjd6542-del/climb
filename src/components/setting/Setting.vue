@@ -148,8 +148,6 @@ export default {
      * ========================= */
     async loadList() {
       this.rowData = [];
-
-      console.log(this.search);
       const res = await api.post("/api/settings/list", this.search);
 
       this.rowData = res.data;
@@ -267,7 +265,6 @@ export default {
     async loadKeyList() {
       const res = await api.post("/api/settings/keyGroup");
       this.KEYS = res.data;
-      console.log(res.data);
     },
   },
 

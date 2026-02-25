@@ -34,6 +34,7 @@ import Amenities from "@/components/setting/Amenities.vue";
 import Types from "@/components/setting/Types.vue";
 import Setting from "@/components/setting/Setting.vue";
 import LangPack from "@/components/setting/LangPack.vue";
+import BoulderColor from "@/components/setting/BoulderColor.vue";
 
 const tabs = [
   {
@@ -53,6 +54,12 @@ const tabs = [
     label: "환경설정",
     icon: "fa-solid fa-gear",
     component: Setting,
+  },
+  {
+    key: "color",
+    label: "색상",
+    icon: "fa-solid fa-palette",
+    component: BoulderColor,
   },
   {
     key: "langPack",
