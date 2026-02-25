@@ -219,18 +219,19 @@ export default {
           bottom: "3%",
           containLabel: true,
         },
-        xAxis: {
-          type: "category",
-          data: this.sidoList.map((d) => d.sido),
-        },
-        yAxis: {
-          type: "value",
-        },
+
         series: [
           {
-            name: "짐 수",
+            name: "",
             type: "pie",
-            radius: ["40%", "70%"],
+            radius: ["30%", "55%"],
+            center: ["50%", "40%"], // 살짝 아래로
+            label: {
+              show: true,
+              formatter: (params) => {
+                return `${params.name} (${params.value})`;
+              },
+            },
             data: this.sidoList.map((d) => ({
               value: d.count,
               name: d.sido,
