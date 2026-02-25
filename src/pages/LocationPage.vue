@@ -798,7 +798,7 @@ export default {
 
     onBookmark(data: any) {
       this.bookmarkStore.add(data);
-      this.$toast.success("북마크 적용되었습니다");
+      this.$toast.success(`[${data.name}] 북마크 적용되었습니다`);
     },
   },
 
