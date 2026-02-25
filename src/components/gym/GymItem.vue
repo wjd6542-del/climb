@@ -45,6 +45,17 @@
               <span>{{ item.amenity.text }}</span>
             </div>
           </div>
+
+          <!-- 볼더링 색상-->
+          <div
+            v-if="gym.gymBoulderColors?.length"
+            class="flex flex-wrap gap-2 mt-2"
+          >
+            <ColorBadgeList
+              :colors="gym.gymBoulderColors.map((item) => item.boulderColor)"
+              shape="circle"
+            />
+          </div>
         </div>
 
         <!-- 드롭다운 -->
@@ -147,8 +158,14 @@
 </template>
 
 <script>
+import ColorBadgeList from "@/components/common/ColorBadgeList.vue";
+
 export default {
   name: "GymItem",
+
+  components: {
+    ColorBadgeList,
+  },
 
   props: {
     gym: { type: Object, required: true },
