@@ -36,37 +36,67 @@
       </div>
     </div>
 
-    <!-- 정상 데이터 -->
-    <GymItem v-if="gym" :gym="gym" :detail="detail" />
+    <div class="max-w-6xl mx-auto px-4 py-8 space-y-10">
+      <!-- 🏢 장소 정보 -->
+      <section
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+      >
+        <div class="flex items-center justify-between mb-5">
+          <h2
+            class="text-lg font-semibold text-gray-800 flex items-center gap-2"
+          >
+            <i class="fa-solid fa-location-dot text-blue-500"></i>
+            장소 정보
+          </h2>
+        </div>
+
+        <div v-if="gym">
+          <GymItem :gym="gym" :detail="detail" />
+        </div>
+      </section>
+
+      <!-- 🎯 난이도 정보 -->
+      <section
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+      >
+        <div class="flex items-center justify-between mb-5">
+          <h2
+            class="text-lg font-semibold text-gray-800 flex items-center gap-2"
+          >
+            <i class="fa-solid fa-layer-group text-red-500"></i>
+            난이도 정보
+          </h2>
+        </div>
+
+        <RouteList :routs="routs" />
+      </section>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import api from "@/lib/api.js";
 import GymItem from "@/components/gym/GymItem.vue";
+import RouteList from "@/components/route/RouteList.vue";
 
 export default {
   name: "LocationDetail",
 
   components: {
     GymItem,
+    RouteList,
   },
 
   data() {
     return {
       gym: null as any,
       detail: null as any,
+      routs: [] as any,
     };
   },
 
-  async mounted() {
-    const gymId = Number(this.$route.params.id);
-    if (!gymId) return;
-    await this.loadGym(gymId);
-    await this.loadDetail(gymId);
-  },
-
   methods: {
+    // 메인정보
     async loadGym(id: number) {
       try {
         const res = await api.post(`/api/gyms/${id}`, { id });
@@ -76,15 +106,34 @@ export default {
       }
     },
 
+    // 상세정보
     async loadDetail(id: number) {
       try {
         const res = await api.post(`/api/gymDetail/getGym`, { gym_id: id });
-        console.log(res.data);
         this.detail = res.data;
       } catch (e) {
         console.error("상세 정보 로딩 실패", e);
       }
     },
+
+    // 난이도 정보
+    async loadRout(id: number) {
+      try {
+        const res = await api.post(`/api/route/list`, { gym_id: id });
+        console.log("난이도 정보", res.data);
+        this.routs = res.data || [];
+      } catch (e) {
+        console.error("상세 정보 로딩 실패", e);
+      }
+    },
+  },
+
+  async mounted() {
+    const gymId = Number(this.$route.params.id);
+    if (!gymId) return;
+    await this.loadGym(gymId);
+    await this.loadDetail(gymId);
+    await this.loadRout(gymId);
   },
 };
 </script>
