@@ -405,6 +405,7 @@ export default {
       this.deleteImageIds = [];
       this.newFiles = [];
       this.newPreviews = [];
+      this.isEdit = false;
       this.openModal = true;
     },
 
@@ -477,16 +478,32 @@ export default {
 
       this.form = {
         gym_id: data.gym_id,
-        title: data.title,
-        content: data.content,
-        rating: data.rating,
+        // 리드, 볼더 구분
+        climb_type: data.climb_type,
+        // 실내, 실외 구분
+        environment: data.environment,
+        // 난이도
+        difficulty: data.difficulty || "",
+        // 메모
+        memo: data.memo || "",
+        // 루트명
+        route_name: data.route_name || "",
+        // 실내 볼더링 색상
+        route_color: data.route_color || "",
+        // 리드 바위종료
+        rock_type: data.rock_type || "",
+        // 리드 높이
+        height: data.height || 0,
+        // 활성여부
+        is_active: data.is_active || "y",
       };
+
+      console.log(this.form);
 
       this.existingImages = data.images || [];
       this.deleteImageIds = [];
       this.newFiles = [];
       this.newPreviews = [];
-
       this.openModal = true;
     },
 
@@ -529,13 +546,13 @@ export default {
         formData.append("gym_id", this.form.gym_id);
         formData.append("climb_type", this.form.climb_type);
         formData.append("environment", this.form.environment);
-        formData.append("difficulty", String(this.form.difficulty));
-        formData.append("memo", String(this.form.memo));
-        formData.append("route_name", String(this.form.route_name));
-        formData.append("route_color", String(this.form.route_color));
-        formData.append("rock_type", String(this.form.rock_type));
+        formData.append("difficulty", this.form.difficulty);
+        formData.append("memo", this.form.memo);
+        formData.append("route_name", this.form.route_name);
+        formData.append("route_color", this.form.route_color);
+        formData.append("rock_type", this.form.rock_type);
         formData.append("height", this.form.height);
-        formData.append("is_active", String(this.form.is_active));
+        formData.append("is_active", this.form.is_active);
 
         if (this.isEdit && this.editId) {
           formData.append("id", String(this.editId));
