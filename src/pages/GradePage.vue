@@ -111,33 +111,18 @@
           </div>
         </div>
 
-        <!-- 루트 구분 -->
+        <!-- 루트 -->
         <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium mt-2">루트 구분</label>
+          <label class="w-28 text-sm font-medium">루트구분</label>
           <div class="flex-1">
             <SearchSelect
-              v-model="form.climb_type"
-              :options="climb_type"
+              v-model="setting"
+              :options="auto_set"
               labelKey="text"
               valueKey="value"
               placeholder="루트 선택"
               class="bg-white border border-gray-200 rounded-lg"
-              @change="climbTypeChange"
-            />
-          </div>
-        </div>
-
-        <!-- 내부/외부 구분 -->
-        <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium mt-2">내외 구분</label>
-          <div class="flex-1">
-            <SearchSelect
-              v-model="form.environment"
-              :options="environment_type"
-              labelKey="text"
-              valueKey="value"
-              placeholder="내외 구분 선택"
-              class="bg-white border border-gray-200 rounded-lg"
+              @change="setAuto"
             />
           </div>
         </div>
@@ -217,18 +202,6 @@
               valueKey="value"
               placeholder="내외 구분 선택"
               class="bg-white border border-gray-200 rounded-lg"
-            />
-          </div>
-        </div>
-
-        <!-- 리드 높이 height -->
-        <div class="flex items-center gap-4" v-if="form.climb_type == 'LEAD'">
-          <label class="w-28 text-sm font-medium mt-2">리드 높이</label>
-          <div class="flex-1">
-            <input
-              type="number"
-              v-model="form.height"
-              class="flex-1 w-full border rounded px-3 py-2 text-sm"
             />
           </div>
         </div>
@@ -339,8 +312,59 @@ export default {
       l_grade: [],
       rock_type: [],
       route_color: [],
+      setting: "",
 
       list: [] as any[],
+
+      // 자동 셋팅
+      auto_set: [
+        {
+          text: "자연 - 리드",
+          value: "NATURE-LEAD",
+          icon: "fa-solid fa-mountain text-gray-500",
+        },
+        {
+          text: "자연 - 볼더링",
+          value: "NATURE-BOULDER",
+          icon: "fa-solid fa-hill-rockslide text-yellow-500",
+        },
+        {
+          text: "실내 - 리드",
+          value: "INDOOR-LEAD",
+          icon: "fa-solid fa-hand-fist text-gray-500",
+        },
+        {
+          text: "실내 - 볼더링",
+          value: "INDOOR-BOULDER",
+          icon: "fa-solid fa-building text-yellow-500",
+        },
+        {
+          text: "실내 - 스피드",
+          value: "INDOOR-SPEED",
+          icon: "fa-solid fa-stopwatch text-red-500",
+        },
+        {
+          text: "실외 - 리드",
+          value: "OUTDOOR-LEAD",
+          icon: "fa-solid fa-mountain text-gray-500",
+        },
+        {
+          text: "실외 - 볼더링",
+          value: "OUTDOOR-BOULDER",
+          icon: "fa-solid fa-building text-yellow-500",
+        },
+        {
+          text: "실외 - 스피드",
+          value: "OUTDOOR-SPEED",
+          icon: "fa-solid fa-stopwatch text-red-500",
+        },
+        {
+          text: "자연 - 빙벽",
+          value: "NATURE-ICE",
+          icon: "fa-solid fa-icicles text-blue-500",
+        },
+      ],
+
       // 검색
       search: { keyword: "", gym_id: "", climb_type: "", environment: "" },
 
@@ -365,6 +389,11 @@ export default {
   },
 
   methods: {
+    setAuto() {
+      let split = this.setting.split("-");
+      this.form.environment = split[0];
+      this.form.climb_type = split[1];
+    },
     // 클라이밍 구분 변경시
     climbTypeChange() {
       if (this.form.climb_type == "BOULDER") {
@@ -498,8 +527,6 @@ export default {
         is_active: data.is_active || "y",
       };
 
-      console.log(this.form);
-
       this.existingImages = data.images || [];
       this.deleteImageIds = [];
       this.newFiles = [];
@@ -591,8 +618,6 @@ export default {
 
     async loadSetting() {
       const res = await api.post("/api/settings/getGradeList");
-      console.log("결과 정보 확인", res.data);
-
       this.climb_type = res.data.climb_type;
       this.environment_type = res.data.environment_type;
       this.v_grade = res.data.v_grade;
