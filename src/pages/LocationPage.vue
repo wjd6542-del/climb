@@ -461,7 +461,7 @@ export default {
           formData.append("images", file);
         });
 
-        await api.post("/api/gyms/detailSave", formData);
+        await api.post("/api/gymDetail/save", formData);
 
         this.$toast.success("저장 완료");
         this.openDetailModal = false;
@@ -551,7 +551,9 @@ export default {
       this.isDetailEdit = true;
       this.detailId = data.id;
 
-      const res = await api.post("/api/gyms/detail", { id: data.id });
+      const res = await api.post("/api/api/gymDetail/getGym", {
+        gym_id: data.id,
+      });
 
       this.default_d_form = {
         name: res.data.name,
