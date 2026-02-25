@@ -165,6 +165,24 @@
           </div>
         </div>
 
+        <!-- 편의시설 -->
+        <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
+          <label class="text-sm font-medium leading-8"
+            >볼더링 난이도 순서</label
+          >
+          <div>
+            <div class="flex flex-wrap gap-2">
+              <MultiColorSelect
+                v-model="form.gymBoulderColors"
+                :options="COLOR"
+                labelKey="name"
+                valueKey="id"
+                colorKey="code"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- 운영시간 -->
         <div class="flex items-start gap-4">
           <label class="w-28 text-sm font-medium mt-1">운영시간</label>
@@ -252,23 +270,21 @@
         <!-- 일일이용권 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">일일 이용금액</label>
-          <input
-            type="number"
-            v-model="default_d_form.day_pass_price"
-            class="flex-1 border rounded px-3 py-2 text-sm"
-          />
+          <div class="flex-1">
+            <input
+              type="number"
+              v-model="default_d_form.day_pass_price"
+              class="w-full border rounded px-3 py-2 text-sm"
+            />
+          </div>
         </div>
 
         <!-- 파일 업로드 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">이미지</label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            class="flex-1 border rounded px-3 py-2"
-            @change="handleFiles"
-          />
+          <div class="flex-1">
+            <BaseImage :multiple="true" @change="handleFiles" />
+          </div>
         </div>
 
         <!-- 기존 이미지 -->
@@ -346,6 +362,8 @@ import KakaoMap from "@/components/common/KakaoMap.vue";
 import Editor from "@/components/common/Editor.vue";
 import SearchSelect from "@/components/common/SearchSelect.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import MultiColorSelect from "@/components/common/MultiColorSelect.vue";
+import BaseImage from "@/components/common/BaseImage.vue";
 
 export default {
   name: "LocationList",
@@ -363,6 +381,8 @@ export default {
     Editor,
     SearchSelect,
     BaseModal,
+    BaseImage,
+    MultiColorSelect,
   },
 
   data() {
@@ -372,6 +392,7 @@ export default {
       GYMS: [],
       SIDO: [],
       GYM_MAP: [],
+      COLOR: [],
       geocoder: null,
 
       openModal: false,
@@ -445,23 +466,69 @@ export default {
         this.newPreviews.push(URL.createObjectURL(file));
       }
     },
+
+    // 상세정보 초기화
+    inintDetailForm() {
+      this.default_d_form = {
+        gym_id: 0,
+        name: "",
+        description: "",
+        day_pass_price: 0,
+      };
+      this.detailId = null;
+      this.isDetailEdit = false;
+      this.existingImages = [];
+      this.newFiles = [];
+      this.newPreviews = [];
+      this.openDetailModal = true;
+    },
+
+    // 상세정보 출력
+    async onDetail(data: any) {
+      this.inintDetailForm();
+
+      const res = await api.post("/api/gymDetail/getGym", {
+        gym_id: data.id,
+      });
+
+      if (res.data) {
+        this.isDetailEdit = true;
+        this.detailId = res.data.id;
+        this.default_d_form = {
+          name: res.data.name,
+          gym_id: res.data.id,
+          description: res.data.description || "",
+          day_pass_price: res.data.day_pass_price || 0,
+        };
+        this.existingImages = res.data.images || [];
+      }
+
+      this.default_d_form.name = data.name;
+      this.default_d_form.gym_id = data.id;
+      this.openDetailModal = true;
+    },
+
+    // 상세정보 저장
     async saveDetail() {
       try {
         const formData = new FormData();
-
-        formData.append("id", this.detailId);
+        formData.append("gym_id", this.default_d_form.gym_id);
         formData.append("description", this.default_d_form.description);
         formData.append("day_pass_price", this.default_d_form.day_pass_price);
-
-        // 삭제 이미지
         formData.append("deleteImageIds", JSON.stringify(this.deleteImageIds));
-
         // 신규 파일
         this.newFiles.forEach((file) => {
           formData.append("images", file);
         });
 
-        await api.post("/api/gymDetail/save", formData);
+        console.log("등록 데이터 확인", this.default_d_form);
+
+        if (this.isDetailEdit) {
+          formData.append("id", this.detailId);
+          await api.post("/api/gymDetail/update", formData);
+        } else {
+          await api.post("/api/gymDetail/save", formData);
+        }
 
         this.$toast.success("저장 완료");
         this.openDetailModal = false;
@@ -501,7 +568,6 @@ export default {
 
     // 저장 처리
     async saveForm(data: any) {
-      console.log("check >> ", data);
       this.form = this.getDefaultForm();
 
       const hoursMap = {
@@ -534,6 +600,9 @@ export default {
         amenities: data.gymAmenityMaps
           ? data.gymAmenityMaps.map((a: any) => a.amenity_id)
           : [],
+        gymBoulderColors: data.gymBoulderColors
+          ? data.gymBoulderColors.map((a: any) => a.boulder_color_id)
+          : [],
         hours: hoursMap,
         is_active: data.is_active || "y",
         lat: data.lat || 0,
@@ -547,40 +616,20 @@ export default {
       this.openModal = true;
     },
 
-    async onDetail(data: any) {
-      this.isDetailEdit = true;
-      this.detailId = data.id;
-
-      const res = await api.post("/api/api/gymDetail/getGym", {
-        gym_id: data.id,
-      });
-
-      this.default_d_form = {
-        name: res.data.name,
-        gym_id: res.data.id,
-        description: res.data.description || "",
-        day_pass_price: res.data.day_pass_price || 0,
-      };
-
-      this.existingImages = res.data.images || [];
-      this.deleteImageIds = [];
-      this.newFiles = [];
-      this.newPreviews = [];
-
-      this.openDetailModal = true;
-    },
-
+    // 장소 정보 저장
     async saveLocation() {
       try {
         const payload = {
           ...this.form,
         };
 
+        // 수정여부 확인
         if (this.isEdit) {
           payload.id = this.editId;
+          await api.post("/api/gyms/update", payload);
+        } else {
+          await api.post("/api/gyms/save", payload);
         }
-
-        await api.post("/api/gyms/save", payload);
 
         this.$toast.success("저장되었습니다");
         this.openModal = false;
@@ -691,6 +740,7 @@ export default {
         address_detail: "",
         types: [],
         amenities: [],
+        gymBoulderColors: [],
         hours: {
           weekday: {
             open_time: "10:00",
@@ -741,6 +791,11 @@ export default {
       this.GYM_MAP = res.data;
     },
 
+    async loadColor() {
+      const res = await api.post("/api/boulderColor/list");
+      this.COLOR = res.data;
+    },
+
     onBookmark(data: any) {
       this.bookmarkStore.add(data);
       this.$toast.success("북마크 적용되었습니다");
@@ -752,12 +807,13 @@ export default {
     await this.loadAmenities();
     await this.loadSidoList();
     await this.loadMapData();
+    await this.loadColor();
 
     await this.loadList(false);
 
-    if (window.kakao && window.kakao.maps) {
+    window.kakao.maps.load(() => {
       this.geocoder = new window.kakao.maps.services.Geocoder();
-    }
+    });
 
     window.addEventListener("scroll", this.handleScroll);
   },
