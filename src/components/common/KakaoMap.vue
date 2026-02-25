@@ -138,9 +138,32 @@ export default {
           this.moveToMarker(item);
         });
 
-        const hasOutdoor = item.gymTypeMap?.some(
-          (map) => map.GymType?.name === "자연암벽",
-        );
+        const getGymCategory = (gymTypeMap = []) => {
+          const names = gymTypeMap.map((m) => m.GymType?.name);
+
+          if (names.includes("자연암벽")) return "OUTDOOR_ROCK";
+          if (names.includes("빙벽")) return "ICE";
+          return "INDOOR";
+        };
+
+        const GYM_TYPE_STYLE = {
+          OUTDOOR_ROCK: {
+            icon: "fa-mountain",
+            iconColor: "#22c55e",
+          },
+          ICE: {
+            icon: "fa-snowflake",
+            iconColor: "#60a5fa",
+          },
+          INDOOR: {
+            icon: "fa-hand-fist",
+            iconColor: "#facc15",
+          },
+        };
+
+        const category = getGymCategory(item.gymTypeMap);
+
+        const style = GYM_TYPE_STYLE[category];
 
         const overlay = new window.kakao.maps.CustomOverlay({
           position,
@@ -157,11 +180,8 @@ export default {
           min-width:160px;
         ">
           <div style="font-weight:700;">
-			${
-        hasOutdoor
-          ? `<i class="text-green-300 fa-solid fa-mountain"></i>`
-          : `<i class="text-yellow-300 fa-solid fa-solid fa-hand-fist"></i>`
-      }
+			 <i class="fa-solid ${style.icon}" 
+           style="color:${style.iconColor}; margin-right:6px;"></i>
 			
             ${item.name}
           </div>
