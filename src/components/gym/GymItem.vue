@@ -98,7 +98,7 @@
 
         <!-- 2️⃣ ROUTE COLOR -->
         <div
-          v-if="gym.gymBoulderColors?.length"
+          v-if="gym.gymBoulderColors?.length && mainFlg"
           class="bg-slate-50 p-4 rounded-2xl border border-slate-100"
         >
           <div class="group-label mb-3">Route Color</div>
@@ -110,7 +110,7 @@
 
         <!-- 3️⃣ ROUTES -->
         <div
-          v-if="gym.gymDifficulties?.length"
+          v-if="gym.gymDifficulties?.length && mainFlg"
           class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4"
         >
           <!-- LEAD -->
@@ -242,6 +242,7 @@ export default {
     gym: { type: Object, required: true },
     detail: { type: Object },
     changeFlg: { type: Boolean, default: false },
+    mainFlg: { type: Boolean, default: false },
     onDelete: Function,
     onBookmark: Function,
     onChange: Function,

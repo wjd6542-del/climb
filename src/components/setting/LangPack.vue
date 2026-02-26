@@ -63,7 +63,7 @@ export default {
     return {
       gridApi: null,
       columnApi: null,
-
+      tempId: -1,
       rowData: [],
       columnDefs: [],
 
@@ -241,7 +241,7 @@ export default {
      * ========================= */
     addRow() {
       const newRow = {
-        id: 0,
+        id: this.tempId--,
         name_ko: "",
         name_en: "",
         name_ja: "",

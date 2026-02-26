@@ -64,7 +64,7 @@ export default {
     return {
       gridApi: null,
       columnApi: null,
-
+      tempId: -1,
       KEYS: [],
       search: {
         keys: [],
@@ -176,7 +176,7 @@ export default {
      * ========================= */
     addRow() {
       const newRow = {
-        id: 0,
+        id: this.tempId--,
         name: "",
         code: "",
         is_active: "y",

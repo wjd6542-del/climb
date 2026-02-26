@@ -66,7 +66,7 @@ export default {
     return {
       gridApi: null,
       columnApi: null,
-
+      tempId: -1,
       rowData: [],
       columnDefs: [
         {
@@ -120,8 +120,6 @@ export default {
           checkboxes: true, // 🔥 반드시 필요
           headerCheckbox: true,
         },
-        pagination: true,
-        paginationPageSize: 20,
         onCellValueChanged: (params) => {
           if (params.oldValue !== params.newValue) {
             params.node.setSelected(true);
@@ -180,7 +178,7 @@ export default {
      * ========================= */
     addRow() {
       const newRow = {
-        id: 0,
+        id: this.tempId--,
         text: "",
         value: "",
         icon: "",
@@ -188,7 +186,7 @@ export default {
         sort: 0,
       };
 
-      const res = this.gridApi.applyTransaction({ add: [newRow] });
+      const res = this.gridApi.applyTransaction({ add: [newRow], addIndex: 0 });
       res.add[0].setSelected(true);
     },
 
