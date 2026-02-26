@@ -70,42 +70,88 @@
         </div>
       </div>
 
-      <div
-        class="mt-5 flex flex-col md:flex-row gap-6 md:items-end justify-between"
-      >
-        <div class="space-y-3">
-          <div
-            v-if="gym.gymTypeMap?.length || gym.gymAmenityMaps?.length"
-            class="flex flex-wrap gap-1.5"
+      <!-- 🔥 정보 영역 -->
+      <div class="mt-6 space-y-5">
+        <!-- 1️⃣ 타입 + 편의시설 -->
+        <div
+          v-if="gym.gymTypeMap?.length || gym.gymAmenityMaps?.length"
+          class="flex flex-wrap gap-2"
+        >
+          <span
+            v-for="item in gym.gymTypeMap"
+            :key="item.type_id"
+            class="tag-primary"
           >
-            <span
-              v-for="item in gym.gymTypeMap"
-              :key="item.type_id"
-              class="tag-primary"
-            >
-              <i :class="item.GymType.icon" class="mr-1 opacity-70"></i
-              >{{ item.GymType.name }}
-            </span>
-            <span
-              v-for="item in gym.gymAmenityMaps"
-              :key="item.amenity_id"
-              class="tag-secondary"
-            >
-              <i :class="item.amenity.icon" class="mr-1 opacity-60"></i
-              >{{ item.amenity.text }}
-            </span>
-          </div>
+            <i :class="item.GymType.icon" class="mr-1 opacity-70"></i>
+            {{ item.GymType.name }}
+          </span>
+
+          <span
+            v-for="item in gym.gymAmenityMaps"
+            :key="item.amenity_id"
+            class="tag-secondary"
+          >
+            <i :class="item.amenity.icon" class="mr-1 opacity-60"></i>
+            {{ item.amenity.text }}
+          </span>
         </div>
 
+        <!-- 2️⃣ ROUTE COLOR -->
         <div
           v-if="gym.gymBoulderColors?.length"
-          class="shrink-0 bg-gray-50/80 p-3 rounded-xl border border-gray-100"
+          class="bg-slate-50 p-4 rounded-2xl border border-slate-100"
         >
-          <div class="group-label mb-2 px-1">Routes</div>
+          <div class="group-label mb-3">Route Color</div>
           <ColorBadgeList
             :colors="gym.gymBoulderColors.map((item) => item.boulderColor)"
             shape="circle"
           />
+        </div>
+
+        <!-- 3️⃣ ROUTES -->
+        <div
+          v-if="gym.gymDifficulties?.length"
+          class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4"
+        >
+          <!-- LEAD -->
+          <div
+            v-if="gym.gymDifficulties.some((d) => d.difficulty.code === 'LEAD')"
+          >
+            <div class="text-[11px] font-bold text-blue-500 mb-2">LEAD</div>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="item in gym.gymDifficulties.filter(
+                  (d) => d.difficulty.code === 'LEAD',
+                )"
+                :key="'l-' + item.difficulty.id"
+                class="tag-secondary"
+              >
+                {{ item.difficulty.name }}
+              </span>
+            </div>
+          </div>
+
+          <!-- BOULDER -->
+          <div
+            v-if="
+              gym.gymDifficulties.some((d) => d.difficulty.code === 'BOULDER')
+            "
+          >
+            <div class="text-[11px] font-bold text-purple-500 mb-2">
+              BOULDER
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="item in gym.gymDifficulties.filter(
+                  (d) => d.difficulty.code === 'BOULDER',
+                )"
+                :key="'b-' + item.difficulty.id"
+                class="tag-secondary"
+              >
+                {{ item.difficulty.name }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
