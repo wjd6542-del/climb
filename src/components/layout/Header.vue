@@ -145,7 +145,7 @@ export default {
           type: "route",
           to: "/share",
           label: "정보공유",
-          icon: "fa-solid fa-pen-to-square",
+          icon: "fa-solid fa-paper-plane",
         },
         {
           type: "route",

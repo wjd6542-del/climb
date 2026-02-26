@@ -80,7 +80,7 @@ import GymItem from "@/components/gym/GymItem.vue";
 import RouteList from "@/components/route/RouteList.vue";
 
 export default {
-  name: "LocationDetail",
+  name: "GymDetailPage",
 
   components: {
     GymItem,

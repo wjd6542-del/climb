@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper">
-    <h1 class="text-xl font-bold mb-2">설정</h1>
+    <h1 class="text-xl font-bold mb-2">{{ $t("설정") }}</h1>
 
     <!-- 탭 헤더 -->
     <div class="flex border-b mb-4">

@@ -34,7 +34,6 @@ export default {
     deleteHandler: { type: Function },
     changeHandler: { type: Function },
   },
-  emits: ["delete", "edit"],
   components: { PostItem },
 };
 </script>

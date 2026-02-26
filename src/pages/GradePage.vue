@@ -289,7 +289,7 @@ import BaseImage from "@/components/common/BaseImage.vue";
 import RouteList from "@/components/route/RouteList.vue";
 
 export default {
-  name: "InfoShare",
+  name: "GradePage",
   components: {
     SearchSelect,
     SearchColorSelect,

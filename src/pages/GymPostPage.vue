@@ -51,8 +51,8 @@
       <PostList
         :posts="list"
         :changeFlg="true"
-        :changeHandler="deletePost"
-        :deleteHandler="dataView"
+        :changeHandler="dataView"
+        :deleteHandler="deletePost"
       />
 
       <div v-if="isLoading" class="text-center py-6 text-gray-400">
@@ -214,7 +214,7 @@ import PostList from "@/components/gymPost/PostList.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
 
 export default {
-  name: "InfoShare",
+  name: "GymPostPage",
   components: {
     PostList,
     SearchSelect,

@@ -1,5 +1,5 @@
 ﻿<template>
-  <transition-group name="list" tag="div" class="space-y-3">
+  <div name="list" class="space-y-3">
     <!-- 🔍 검색 -->
     <div class="relative">
       <input
@@ -22,38 +22,40 @@
     </div>
 
     <!-- 📌 리스트 -->
-    <div
-      v-for="item in filteredList"
-      :key="item.id"
-      class="p-3 border rounded-lg hover:bg-gray-50 flex justify-between items-center"
-    >
-      <div @click="move(item)" class="cursor-pointer">
-        <div class="font-medium">{{ item.name }}</div>
-        <div class="text-xs text-gray-500">
-          <p>주소 : {{ item.address }}</p>
-          <p>상세 : {{ item.address_detail }}</p>
+    <transition-group name="list" tag="div" class="space-y-3">
+      <div
+        v-for="item in filteredList"
+        :key="item.id"
+        class="p-3 border rounded-lg hover:bg-gray-50 flex justify-between items-center"
+      >
+        <div @click="move(item)" class="cursor-pointer">
+          <div class="font-medium">{{ item.name }}</div>
+          <div class="text-xs text-gray-500">
+            <p>주소 : {{ item.address }}</p>
+            <p v-if="item.address_detail">상세 : {{ item.address_detail }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            title="주소 복사"
+            class="text-gray-500 hover:text-blue-600"
+            @click.stop="copyAddress(item)"
+          >
+            <i class="fa-regular fa-copy"></i>
+          </button>
+
+          <button
+            title="북마크 삭제"
+            class="text-red-500 hover:text-red-700"
+            @click.stop="remove(item)"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
-
-      <div class="flex items-center gap-3">
-        <button
-          title="주소 복사"
-          class="text-gray-500 hover:text-blue-600"
-          @click.stop="copyAddress(item)"
-        >
-          <i class="fa-regular fa-copy"></i>
-        </button>
-
-        <button
-          title="북마크 삭제"
-          class="text-red-500 hover:text-red-700"
-          @click.stop="remove(item)"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-  </transition-group>
+    </transition-group>
+  </div>
 </template>
 
 <script>

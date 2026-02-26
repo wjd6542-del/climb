@@ -366,7 +366,7 @@ import MultiColorSelect from "@/components/common/MultiColorSelect.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
 
 export default {
-  name: "LocationList",
+  name: "GymPage",
 
   setup() {
     const bookmarkStore = useBookmarkStore();

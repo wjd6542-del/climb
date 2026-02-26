@@ -142,11 +142,11 @@ export default {
     changeFlg: { type: Boolean, default: false },
     onChange: Function,
     onDelete: Function,
-    ㄴ,
   },
   emits: ["delete", "edit"],
   data() {
     return {
+      open: false,
       selectedImage: null,
       actionItems: [
         {
@@ -169,20 +169,24 @@ export default {
     },
   },
   methods: {
-    // 상세정보 이동
     goDetail() {
-      this.$router.push(`/shareDetail/${this.post.id}`);
+      this.$router.push({
+        path: `/shareDetail`,
+        query: {
+          id: this.post.id,
+        },
+      });
     },
     toggle() {
       this.open = !this.open;
     },
     handleChange() {
       this.open = false;
-      this.onChange?.(this.rout);
+      this.onChange?.(this.post);
     },
     handleDelete() {
       this.open = false;
-      this.onDelete?.(this.rout);
+      this.onDelete?.(this.post);
     },
     openImage(url) {
       this.selectedImage = url;
@@ -201,6 +205,8 @@ export default {
 .prose {
   word-break: break-all;
 }
-
-/* 추가적인 커스텀 스타일이 필요하다면 여기에 작성 */
+/* 드롭다운 메뉴 버튼 */
+.menu-btn {
+  @apply w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center active:bg-gray-100;
+}
 </style>

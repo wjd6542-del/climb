@@ -137,7 +137,7 @@ import KakaoMap from "@/components/common/KakaoMap.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 
 export default {
-  name: "InfoSearch",
+  name: "MainPage",
 
   components: {
     PostList,
