@@ -19,20 +19,20 @@ export const useBookmarkStore = defineStore("bookmark", {
     },
 
     add(gym) {
-      if (!this.gyms.some((v) => v.id === gym.id)) {
+      if (!this.gyms.some((v) => v.key === gym.key)) {
         this.gyms.push(gym);
         this.save();
       }
     },
 
-    remove(id) {
-      this.gyms = this.gyms.filter((v) => v.id !== id);
+    remove(key) {
+      this.gyms = this.gyms.filter((v) => v.key !== key);
       this.save();
     },
 
     toggle(gym) {
-      if (this.isBookmarked(gym.id)) {
-        this.remove(gym.id);
+      if (this.isBookmarked(gym.key)) {
+        this.remove(gym.key);
       } else {
         this.add(gym);
       }

@@ -51,8 +51,8 @@
       <PostList
         :posts="list"
         :changeFlg="true"
-        @delete="deletePost"
-        @edit="dataView"
+        :changeHandler="deletePost"
+        :deleteHandler="dataView"
       />
 
       <div v-if="isLoading" class="text-center py-6 text-gray-400">

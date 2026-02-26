@@ -13,7 +13,7 @@
         :gym="gym"
         :onDelete="deleteHandler"
         :onBookmark="bookmarkHandler"
-        :onChange="changekHandler"
+        :onChange="changeHandler"
         :changeFlg="changeFlg"
         :onDetail="detailHandler"
       />
@@ -26,10 +26,10 @@ import GymItem from "./GymItem.vue";
 
 defineProps({
   gyms: { type: Array, required: true },
-  deleteHandler: { type: Function },
   changeFlg: { type: Boolean, default: false },
+  deleteHandler: { type: Function },
   bookmarkHandler: { type: Function },
-  changekHandler: { type: Function },
+  changeHandler: { type: Function },
   detailHandler: { type: Function },
 });
 </script>

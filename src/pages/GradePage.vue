@@ -59,8 +59,9 @@
       <RouteList
         :routs="list"
         :changeFlg="true"
-        @delete="deletePost"
-        @edit="dataView"
+        :bookmarkHandler="onBookmark"
+        :changeHandler="dataView"
+        :deleteHandler="deleteData"
       />
 
       <div v-if="isLoading" class="text-center py-6 text-gray-400">
@@ -278,13 +279,13 @@
 </template>
 
 <script lang="ts">
+import { useBookmarkStore } from "@/stores/bookmarkStore";
 import api from "@/lib/api.js";
 import SearchSelect from "@/components/common/SearchSelect.vue";
 import SearchColorSelect from "@/components/common/SearchColorSelect.vue";
 import Editor from "@/components/common/Editor.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
-
 import RouteList from "@/components/route/RouteList.vue";
 
 export default {
@@ -296,6 +297,11 @@ export default {
     BaseModal,
     BaseImage,
     RouteList,
+  },
+
+  setup() {
+    const bookmarkStore = useBookmarkStore();
+    return { bookmarkStore };
   },
 
   data() {
@@ -611,6 +617,23 @@ export default {
       }
     },
 
+    // 북마크
+    onBookmark(data: any) {
+      let item = {
+        key: `${data.gym.id}_${data.id}`,
+        id: data.gym.id,
+        route_id: data.id,
+        name: `${data.gym.name} - ${data.difficulty}`,
+        address: data.gym.address,
+        address_detail: data.gym.address_detail,
+      };
+      // 북마크 주입
+      this.bookmarkStore.add(item);
+      this.$toast.success(
+        `[${data.gym.name} - ${data.difficulty}] 북마크 적용되었습니다`,
+      );
+    },
+
     async loadGymsList() {
       const res = await api.post("/api/gyms/list", {});
       this.gymList = res.data;
@@ -626,7 +649,7 @@ export default {
       this.route_color = res.data.route_color;
     },
 
-    async deletePost(data: any) {
+    async deleteData(data: any) {
       const ok = await this.$confirm(
         `${data.gym.name} - ${data.difficulty} 정보를 삭제하시겠습니까?`,
         "삭제 확인",

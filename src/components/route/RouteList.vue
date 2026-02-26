@@ -11,8 +11,9 @@
         v-for="rout in routs"
         :key="rout.id"
         :rout="rout"
-        @delete="$emit('delete', $event)"
-        @edit="$emit('edit', $event)"
+        :onDelete="deleteHandler"
+        :onBookmark="bookmarkHandler"
+        :onChange="changeHandler"
         :changeFlg="changeFlg"
       />
     </transition-group>
@@ -31,8 +32,11 @@ export default {
     changeFlg: {
       type: Boolean,
     },
+    deleteHandler: { type: Function },
+    bookmarkHandler: { type: Function },
+    changeHandler: { type: Function },
   },
-  emits: ["delete", "edit"],
+
   components: { RouteItem },
 };
 </script>

@@ -117,10 +117,12 @@ export default {
     },
 
     // 난이도 정보
-    async loadRout(id: number) {
+    async loadRout(gym_id: number, route_id: number) {
       try {
-        const res = await api.post(`/api/route/list`, { gym_id: id });
-        console.log("난이도 정보", res.data);
+        const res = await api.post(`/api/route/list`, {
+          gym_id: gym_id,
+          route_id: route_id,
+        });
         this.routs = res.data || [];
       } catch (e) {
         console.error("상세 정보 로딩 실패", e);
@@ -129,11 +131,12 @@ export default {
   },
 
   async mounted() {
-    const gymId = Number(this.$route.params.id);
-    if (!gymId) return;
-    await this.loadGym(gymId);
-    await this.loadDetail(gymId);
-    await this.loadRout(gymId);
+    const gym_id = Number(this.$route.query.gym_id);
+    const route_id = Number(this.$route.query.route_id);
+    if (!gym_id) return;
+    await this.loadGym(gym_id);
+    await this.loadDetail(gym_id);
+    await this.loadRout(gym_id, route_id);
   },
 };
 </script>

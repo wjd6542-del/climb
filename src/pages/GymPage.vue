@@ -71,7 +71,7 @@
         :deleteHandler="deleteGym"
         :changeFlg="true"
         :bookmarkHandler="onBookmark"
-        :changekHandler="saveForm"
+        :changeHandler="saveForm"
         :detailHandler="onDetail"
       />
 
@@ -796,8 +796,18 @@ export default {
       this.COLOR = res.data;
     },
 
+    // 북마크
     onBookmark(data: any) {
-      this.bookmarkStore.add(data);
+      let item = {
+        key: `${data.id}_0`,
+        id: data.id,
+        route_id: null,
+        name: data.name,
+        address: data.address,
+        address_detail: data.address_detail,
+      };
+      // 북마크 주입
+      this.bookmarkStore.add(item);
       this.$toast.success(`[${data.name}] 북마크 적용되었습니다`);
     },
   },

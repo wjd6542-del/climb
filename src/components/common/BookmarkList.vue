@@ -27,7 +27,7 @@
       :key="item.id"
       class="p-3 border rounded-lg hover:bg-gray-50 flex justify-between items-center"
     >
-      <div @click="move(item.id)" class="cursor-pointer">
+      <div @click="move(item)" class="cursor-pointer">
         <div class="font-medium">{{ item.name }}</div>
         <div class="text-xs text-gray-500">
           <p>주소 : {{ item.address }}</p>
@@ -101,12 +101,18 @@ export default {
     },
 
     remove(data) {
-      this.bookmarkStore.remove(data.id);
+      this.bookmarkStore.remove(data.key);
       this.$toast?.success(`${data.name} 북마크가 삭제 처리 되었습니다`);
     },
 
-    move(id) {
-      this.$router.push(`/locationDetail/${id}`);
+    move(data) {
+      this.$router.push({
+        path: `/locationDetail`,
+        query: {
+          gym_id: data.id,
+          route_id: data.route_id || null,
+        },
+      });
       this.$emit("close");
     },
   },

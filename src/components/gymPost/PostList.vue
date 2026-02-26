@@ -11,9 +11,9 @@
         v-for="post in posts"
         :key="post.id"
         :post="post"
-        @delete="$emit('delete', $event)"
-        @edit="$emit('edit', $event)"
         :changeFlg="changeFlg"
+        :onDelete="deleteHandler"
+        :onChange="changeHandler"
       />
     </transition-group>
   </div>
@@ -31,6 +31,8 @@ export default {
     changeFlg: {
       type: Boolean,
     },
+    deleteHandler: { type: Function },
+    changeHandler: { type: Function },
   },
   emits: ["delete", "edit"],
   components: { PostItem },

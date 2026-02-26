@@ -139,7 +139,7 @@ export default {
           type: "route",
           to: "/grade",
           label: "난이도 정보",
-          icon: "fa-solid fa-mountain",
+          icon: "fa-solid fa-layer-group",
         },
         {
           type: "route",
