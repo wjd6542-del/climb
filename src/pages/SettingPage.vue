@@ -65,7 +65,7 @@ const tabs = [
   {
     key: "grade",
     label: "난이도",
-    icon: "fa-solid fa-palette",
+    icon: "fa-solid fa-layer-group",
     component: Difficulty,
   },
 
