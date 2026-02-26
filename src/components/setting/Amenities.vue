@@ -1,25 +1,36 @@
 ﻿<template>
   <div>
-    <div class="flex gap-2">
-      <!-- 상단 액션 -->
-      <button
-        @click="addRow"
-        class="mb-2 px-2 py-1 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
+    <div class="bg-white border rounded-xl shadow-sm p-4 mb-4">
+      <div
+        class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
       >
-        <i class="fa-solid fa-plus"></i> {{ $t("추가") }}
-      </button>
-      <button
-        @click="saveRows"
-        class="mb-2 px-2 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600 gap-1"
-      >
-        <i class="fa-solid fa-save"></i> {{ $t("저장") }}
-      </button>
-      <button
-        @click="deleteRows"
-        class="mb-2 px-2 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600 gap-1"
-      >
-        <i class="fa-solid fa-trash"></i> {{ $t("삭제") }}
-      </button>
+        <!-- 우측 : 액션 버튼 -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            @click="addRow"
+            class="px-3 py-1.5 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-plus"></i>
+            {{ $t("추가") }}
+          </button>
+
+          <button
+            @click="saveRows"
+            class="px-3 py-1.5 text-sm rounded-lg bg-green-500 text-white hover:bg-green-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-save"></i>
+            {{ $t("저장") }}
+          </button>
+
+          <button
+            @click="deleteRows"
+            class="px-3 py-1.5 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-trash"></i>
+            {{ $t("삭제") }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- AG Grid -->

@@ -34,17 +34,18 @@
     </div>
 
     <!-- AG Grid -->
-    <div class="ag-theme-alpine w-full" style="width: 100%; height: 400px">
+    <div class="ag-theme-alpine w-full" style="width: 100%; height: 600px">
       <AgGridVue
         class="ag-theme-alpine"
         theme="legacy"
         domLayout="normal"
-        style="width: 100%; height: 400px"
+        style="width: 100%; height: 600px"
         :rowData="rowData"
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
         :gridOptions="gridOptions"
         @grid-ready="onGridReady"
+        @cell-editing-stopped="onCellEditingStopped"
       />
     </div>
   </div>
@@ -53,15 +54,21 @@
 <script>
 import api from "@/lib/api.js";
 import { AgGridVue } from "ag-grid-vue3";
+import MultiCheck from "@/components/common/MultiCheck.vue";
 
 export default {
-  name: "gymTypeTable",
-  components: { AgGridVue },
+  name: "difficulty",
+  components: { AgGridVue, MultiCheck },
 
   data() {
     return {
       gridApi: null,
       columnApi: null,
+
+      KEYS: [],
+      search: {
+        keys: [],
+      },
 
       rowData: [],
       columnDefs: [],
@@ -73,8 +80,6 @@ export default {
           checkboxes: true, // 🔥 반드시 필요
           headerCheckbox: true,
         },
-        pagination: true,
-        paginationPageSize: 20,
         onCellValueChanged: (params) => {
           if (params.oldValue !== params.newValue) {
             params.node.setSelected(true);
@@ -99,14 +104,14 @@ export default {
     };
   },
 
-  mounted() {
-    this.loadList();
-  },
-
   methods: {
-    /* =========================
-     * Grid Ready
-     * ========================= */
+    onCellEditingStopped(params) {
+      params.api.setNodesSelected({
+        nodes: [params.node],
+        newValue: true,
+        clearSelection: false,
+      });
+    },
 
     onGridReady(params) {
       this.gridApi = params.api;
@@ -121,34 +126,35 @@ export default {
      * ========================= */
     async loadList() {
       this.rowData = [];
-      const res = await api.post("/api/gymType/allList");
+      const res = await api.post("/api/difficulty/list", this.search);
 
       this.rowData = res.data;
 
       // 해더  및 기능 설정
       this.columnDefs = [
         {
-          headerName: "이름",
+          headerName: this.$t("색상명"),
           field: "name",
           filter: "agTextColumnFilter",
-          flex: 1,
+          flex: 0.5,
         },
         {
-          headerName: "아이콘",
-          field: "icon",
+          headerName: this.$t("색상코드"),
+          field: "code",
           filter: "agTextColumnFilter",
-          flex: 1,
+          flex: 0.5,
         },
         {
-          headerName: "정렬",
+          headerName: this.$t("정렬"),
           field: "sort",
           filter: "agNumberColumnFilter",
           flex: 0.5,
         },
         {
-          headerName: "활성여부",
+          headerName: this.$t("활성여부"),
           field: "is_active",
           editable: true,
+          flex: 0.5,
           cellEditor: "agSelectCellEditor",
           cellEditorParams: {
             values: ["y", "n"],
@@ -172,12 +178,12 @@ export default {
       const newRow = {
         id: 0,
         name: "",
-        icon: "",
+        code: "",
         is_active: "y",
         sort: 0,
       };
 
-      const res = this.gridApi.applyTransaction({ add: [newRow] });
+      const res = this.gridApi.applyTransaction({ add: [newRow], addIndex: 0 });
       res.add[0].setSelected(true);
     },
 
@@ -191,7 +197,8 @@ export default {
           this.$toast.error("선택된 정보가 없습니다");
           return;
         }
-        await api.post("/api/gymType/batchSave", rows);
+
+        await api.post("/api/difficulty/batchSave", rows);
         this.$toast.success("저장 완료");
         this.loadList();
       } catch (e) {
@@ -217,13 +224,17 @@ export default {
       if (!ok) return;
 
       try {
-        await api.post("/api/gymType/batchDelete", rows);
+        await api.post("/api/difficulty/batchDelete", rows);
         this.$toast.success("삭제 완료");
         this.loadList();
       } catch (e) {
         this.$toast.error("삭제 중 오류가 발생했습니다");
       }
     },
+  },
+
+  mounted() {
+    this.loadList();
   },
 };
 </script>

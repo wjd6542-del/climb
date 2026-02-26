@@ -5,28 +5,6 @@
       <div
         class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
       >
-        <!-- 좌측 : 키 선택 -->
-        <div class="flex-1 max-w-[750px]">
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-sm font-semibold text-gray-700">
-              설정 키 선택
-            </label>
-            <span v-if="search.keys?.length" class="text-xs text-blue-600">
-              {{ search.keys.length }}개 선택
-            </span>
-          </div>
-
-          <MultiCheck
-            placeholder="키를 선택하세요"
-            :items="KEYS"
-            v-model="search.keys"
-            textKey="key"
-            idKey="key"
-            @change="loadList"
-          />
-        </div>
-
-        <!-- 우측 : 액션 버튼 -->
         <div class="flex items-center gap-2 flex-wrap">
           <button
             @click="addRow"
@@ -51,6 +29,18 @@
             <i class="fa-solid fa-trash"></i>
             {{ $t("삭제") }}
           </button>
+        </div>
+
+        <!-- 좌측 : 키 선택 -->
+        <div class="flex-1 max-w-[600px]">
+          <MultiCheck
+            placeholder="키를 선택하세요"
+            :items="KEYS"
+            v-model="search.keys"
+            textKey="key"
+            idKey="key"
+            @change="loadList"
+          />
         </div>
       </div>
     </div>

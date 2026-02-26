@@ -35,6 +35,7 @@ import Types from "@/components/setting/Types.vue";
 import Setting from "@/components/setting/Setting.vue";
 import LangPack from "@/components/setting/LangPack.vue";
 import BoulderColor from "@/components/setting/BoulderColor.vue";
+import Difficulty from "@/components/setting/Difficulty.vue";
 
 const tabs = [
   {
@@ -61,6 +62,13 @@ const tabs = [
     icon: "fa-solid fa-palette",
     component: BoulderColor,
   },
+  {
+    key: "grade",
+    label: "난이도",
+    icon: "fa-solid fa-palette",
+    component: Difficulty,
+  },
+
   {
     key: "langPack",
     label: "다국어",
