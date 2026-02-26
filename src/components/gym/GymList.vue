@@ -14,8 +14,9 @@
         :onDelete="deleteHandler"
         :onBookmark="bookmarkHandler"
         :onChange="changeHandler"
-        :changeFlg="changeFlg"
         :onDetail="detailHandler"
+        :changeFlg="changeFlg"
+        :mainFlg="mainFlg"
       />
     </transition-group>
   </div>
@@ -27,6 +28,7 @@ import GymItem from "./GymItem.vue";
 defineProps({
   gyms: { type: Array, required: true },
   changeFlg: { type: Boolean, default: false },
+  mainFlg: { type: Boolean, default: false },
   deleteHandler: { type: Function },
   bookmarkHandler: { type: Function },
   changeHandler: { type: Function },
