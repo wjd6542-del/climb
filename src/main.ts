@@ -32,7 +32,8 @@ import { ModuleRegistry, AllCommunityModule, RowSelectionModule } from "ag-grid-
 /* ✅ 커뮤니티 전체 기능 등록 */
 ModuleRegistry.registerModules([AllCommunityModule, RowSelectionModule]);
 
-
+import FloatingVue from "floating-vue";
+import "floating-vue/dist/style.css";
 
 import VueECharts from "vue-echarts"
 import * as echarts from "echarts/core"
@@ -70,6 +71,8 @@ const pinia = createPinia();
 const app = createApp(App)
 app.component('Toggle', Toggle)
 app.component("v-chart", VueECharts)
+// 툴팁
+app.use(FloatingVue);
 
 app.use(VCalendar, {});
 
