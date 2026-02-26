@@ -132,9 +132,9 @@ export default {
 
   computed: {
     selectedItems() {
-      return this.options.filter((o) =>
-        this.innerValue.includes(o[this.valueKey]),
-      );
+      return this.innerValue
+        .map((val) => this.options.find((o) => o[this.valueKey] === val))
+        .filter(Boolean);
     },
 
     filteredOptions() {
@@ -171,6 +171,7 @@ export default {
     },
 
     emitChange() {
+      console.log("선택 순서", this.innerValue);
       this.$emit("update:modelValue", this.innerValue);
       this.$emit("change", this.innerValue);
     },
