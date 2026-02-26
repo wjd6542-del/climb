@@ -137,7 +137,7 @@
 
         <!-- 짐 타입 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
-          <label class="text-sm font-medium leading-8">짐 타입</label>
+          <label class="text-sm font-medium leading-8">타입</label>
           <div class="flex flex-wrap gap-2">
             <Toggle
               v-for="t in GYM_TYPES"
@@ -165,11 +165,15 @@
           </div>
         </div>
 
-        <!-- 편의시설 -->
+        <!-- 색상순서 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
           <label class="text-sm font-medium leading-8"
-            >볼더링 난이도 순서</label
-          >
+            >색상 순서
+            <i
+              class="fa-solid fa-circle-question"
+              v-tooltip="'볼더링/지구력 난이도 순서별 색상 설정'"
+            ></i
+          ></label>
           <div>
             <div class="flex flex-wrap gap-2">
               <MultiColorSelect
@@ -178,6 +182,28 @@
                 labelKey="name"
                 valueKey="id"
                 colorKey="code"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 난이도 종류 -->
+        <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
+          <label class="text-sm font-medium leading-8"
+            >난이도 종류
+            <i
+              class="fa-solid fa-circle-question"
+              v-tooltip="'볼더링/지구력 난이도 종류 설정'"
+            ></i
+          ></label>
+          <div>
+            <div class="flex flex-wrap gap-2">
+              <MultiCheck
+                placeholder="구분을 선택하세요"
+                label=""
+                :items="DIFFICULTYS"
+                v-model="form.gymDifficulties"
+                textKey="name"
               />
             </div>
           </div>
@@ -393,6 +419,7 @@ export default {
       SIDO: [],
       GYM_MAP: [],
       COLOR: [],
+      DIFFICULTYS: [],
       geocoder: null,
 
       openModal: false,
@@ -521,8 +548,6 @@ export default {
           formData.append("images", file);
         });
 
-        console.log("등록 데이터 확인", this.default_d_form);
-
         if (this.isDetailEdit) {
           formData.append("id", this.detailId);
           await api.post("/api/gymDetail/update", formData);
@@ -603,6 +628,9 @@ export default {
         gymBoulderColors: data.gymBoulderColors
           ? data.gymBoulderColors.map((a: any) => a.boulder_color_id)
           : [],
+        gymDifficulties: data.gymDifficulties
+          ? data.gymDifficulties.map((a: any) => a.difficulty_id)
+          : [],
         hours: hoursMap,
         is_active: data.is_active || "y",
         lat: data.lat || 0,
@@ -619,6 +647,8 @@ export default {
     // 장소 정보 저장
     async saveLocation() {
       try {
+        console.log("색상 순서 확인", this.form.gymBoulderColors);
+
         const payload = {
           ...this.form,
         };
@@ -626,6 +656,7 @@ export default {
         // 수정여부 확인
         if (this.isEdit) {
           payload.id = this.editId;
+          console.log("색상 순서 확인", this.form.gymBoulderColors);
           await api.post("/api/gyms/update", payload);
         } else {
           await api.post("/api/gyms/save", payload);
@@ -666,6 +697,7 @@ export default {
         });
 
         const list = res.data || [];
+        console.log("정렬된체로 오나??", list);
 
         if (append) {
           this.GYMS = [...this.GYMS, ...list];
@@ -711,7 +743,7 @@ export default {
     /* =========================
        삭제
     ========================== */
-    async deleteGym(data) {
+    async deleteGym(data: any) {
       const ok = await this.$confirm(
         `${data.name} 정보를 삭제하시겠습니까?`,
         "삭제 확인",
@@ -741,6 +773,7 @@ export default {
         types: [],
         amenities: [],
         gymBoulderColors: [],
+        gymDifficulties: [],
         hours: {
           weekday: {
             open_time: "10:00",
@@ -796,6 +829,11 @@ export default {
       this.COLOR = res.data;
     },
 
+    async loadDifficulty() {
+      const res = await api.post("/api/difficulty/list");
+      this.DIFFICULTYS = res.data;
+    },
+
     // 북마크
     onBookmark(data: any) {
       let item = {
@@ -818,6 +856,7 @@ export default {
     await this.loadSidoList();
     await this.loadMapData();
     await this.loadColor();
+    await this.loadDifficulty();
 
     await this.loadList(false);
 
