@@ -132,19 +132,19 @@ export default {
         {
           type: "route",
           to: "/location",
-          label: "장소정보",
+          label: "장소",
           icon: "fa-solid fa-location-dot",
         },
         {
           type: "route",
           to: "/grade",
-          label: "난이도 정보",
+          label: "난이도",
           icon: "fa-solid fa-layer-group",
         },
         {
           type: "route",
           to: "/share",
-          label: "정보공유",
+          label: "정보",
           icon: "fa-solid fa-paper-plane",
         },
         {
