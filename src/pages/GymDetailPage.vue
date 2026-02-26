@@ -51,7 +51,7 @@
         </div>
 
         <div v-if="gym">
-          <GymItem :gym="gym" :detail="detail" />
+          <GymItem :gym="gym" :detail="detail" :mainFlg="true" />
         </div>
       </section>
 

@@ -68,8 +68,9 @@
 
       <GymList
         :gyms="GYMS"
-        :deleteHandler="deleteGym"
         :changeFlg="true"
+        :mainFlg="true"
+        :deleteHandler="deleteGym"
         :bookmarkHandler="onBookmark"
         :changeHandler="saveForm"
         :detailHandler="onDetail"
