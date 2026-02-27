@@ -648,8 +648,6 @@ export default {
     // 장소 정보 저장
     async saveLocation() {
       try {
-        console.log("색상 순서 확인", this.form.gymBoulderColors);
-
         const payload = {
           ...this.form,
         };
@@ -657,7 +655,6 @@ export default {
         // 수정여부 확인
         if (this.isEdit) {
           payload.id = this.editId;
-          console.log("색상 순서 확인", this.form.gymBoulderColors);
           await api.post("/api/gyms/update", payload);
         } else {
           await api.post("/api/gyms/save", payload);
@@ -698,8 +695,6 @@ export default {
         });
 
         const list = res.data || [];
-        console.log("정렬된체로 오나??", list);
-
         if (append) {
           this.GYMS = [...this.GYMS, ...list];
         } else {
