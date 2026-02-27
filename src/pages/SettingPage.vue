@@ -36,6 +36,7 @@ import Setting from "@/components/setting/Setting.vue";
 import LangPack from "@/components/setting/LangPack.vue";
 import BoulderColor from "@/components/setting/BoulderColor.vue";
 import Difficulty from "@/components/setting/Difficulty.vue";
+import Academy from "@/components/setting/Academy.vue";
 
 const tabs = [
   {
@@ -67,6 +68,12 @@ const tabs = [
     label: "난이도",
     icon: "fa-solid fa-layer-group",
     component: Difficulty,
+  },
+  {
+    key: "academy",
+    label: "베너",
+    icon: "fa-solid fa-layer-group",
+    component: Academy,
   },
 
   {
