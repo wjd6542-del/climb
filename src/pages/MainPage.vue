@@ -8,7 +8,7 @@
             v-model="keyword"
             @keyup.enter="handleSearch"
             type="text"
-            placeholder="장소명, 게시물 제목으로 검색해보세요"
+            :placeholder="$t('장소명, 게시물 제목으로 검색')"
             class="w-full h-16 pl-14 pr-6 text-lg rounded-2xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition"
           />
           <i
@@ -19,7 +19,7 @@
 
       <!-- 좌우 영역 -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- 왼쪽 영역 -->
+        <!-- 정보공유 -->
         <section
           class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
         >
@@ -28,17 +28,17 @@
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
             >
               <i class="fa-regular fa-newspaper text-blue-500"></i>
-              정보공유
+              {{ $t("정보") }}
             </h3>
-            <span class="text-xs text-gray-400"
-              >최신 {{ list.length || 0 }}건
+            <span class="text-xs text-gray-400">
+              {{ $t("최신") }} {{ list.length || 0 }}{{ $t("건") }}
             </span>
           </div>
 
           <PostList :posts="list" />
         </section>
 
-        <!-- 오른쪽 영역 -->
+        <!-- 장소정보 -->
         <section
           class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
         >
@@ -47,25 +47,26 @@
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
             >
               <i class="fa-solid fa-location-dot text-red-500"></i>
-              장소정보
+              {{ $t("장소") }}
             </h3>
+
             <span class="text-xs text-gray-400">
-              최신 {{ gymList.length || 0 }}건
+              {{ $t("최신") }} {{ gymList.length || 0 }}{{ $t("건") }}
             </span>
 
-            <!-- 🔥 맵 토글 버튼 -->
             <button
               @click="openMapModal = !openMapModal"
               class="px-2 py-1.5 text-sm rounded-lg border flex items-center gap-2 transition"
             >
-              <i class="fa-solid fa-map"></i> 지도보기
+              <i class="fa-solid fa-map"></i>
+              {{ $t("지도") }}
             </button>
           </div>
 
           <GymList :gyms="gymList" />
         </section>
 
-        <!-- 난이도 영역 -->
+        <!-- 난이도 정보 -->
         <section
           class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
         >
@@ -74,17 +75,17 @@
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
             >
               <i class="fa-solid fa-mountain text-green-500"></i>
-              난이도 정보
+              {{ $t("난이도") }}
             </h3>
-            <span class="text-xs text-gray-400"
-              >최신 {{ routList.length || 0 }}건
+            <span class="text-xs text-gray-400">
+              {{ $t("최신") }} {{ routList.length || 0 }}{{ $t("건") }}
             </span>
           </div>
-          <!-- 난이도 정보 -->
+
           <RouteList :routs="routList" />
         </section>
 
-        <!-- 위치정보 영역 -->
+        <!-- 위치정보 -->
         <section
           class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
         >
@@ -93,13 +94,13 @@
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
             >
               <i class="fa-regular fa-map text-yellow-500"></i>
-              위치정보
+              {{ $t("위치") }}
             </h3>
-            <span class="text-xs text-gray-400"
-              >총 {{ markerList.length || 0 }}건
+            <span class="text-xs text-gray-400">
+              {{ $t("총") }} {{ markerList.length || 0 }}{{ $t("건") }}
             </span>
           </div>
-          <!-- 시도 리스트 -->
+
           <div class="space-y-3">
             <v-chart
               class="w-full h-[350px]"
@@ -111,13 +112,15 @@
       </div>
     </div>
 
-    <!-- 맵모달 -->
-    <BaseModal v-model="openMapModal" :title="'지도 확인'" width="full">
+    <!-- 맵 모달 -->
+    <BaseModal v-model="openMapModal" :title="$t('지도')" width="full">
       <template #header>
         <h2 class="text-lg font-semibold">
-          <i class="fa-solid fa-map"></i> 지도 확인
+          <i class="fa-solid fa-map"></i>
+          {{ $t("지도") }}
         </h2>
       </template>
+
       <div class="space-y-4">
         <KakaoMap
           :markers="markerList"

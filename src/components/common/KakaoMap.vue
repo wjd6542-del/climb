@@ -8,11 +8,11 @@
         v-model="keyword"
         @keyup.enter.prevent="searchMarker"
         type="text"
-        placeholder="이름 검색"
+        :placeholder="$t('검색')"
         class="px-3 py-2 text-sm outline-none w-60"
       />
       <button @click="searchMarker" class="px-3 bg-blue-500 text-white text-sm">
-        검색
+        {{ $t("검색") }}
       </button>
     </div>
 

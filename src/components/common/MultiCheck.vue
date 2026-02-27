@@ -2,7 +2,7 @@
   <div class="relative w-full">
     <!-- 라벨 -->
     <label v-if="label" class="block mb-1 text-sm font-medium text-gray-700">
-      {{ label }}
+      {{ $t(label) }}
     </label>
 
     <!-- 선택 영역 -->
@@ -56,7 +56,7 @@
           @change="emitChange"
         />
         <i v-if="item.icon" :class="item.icon"></i>
-        {{ item[textKey] }}
+        {{ $t(item[textKey]) }}
       </label>
     </div>
   </div>

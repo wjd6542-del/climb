@@ -51,13 +51,14 @@
             >
               <div class="h-[1px] bg-gray-100 my-1"></div>
               <button @click.stop="handleChange" class="menu-btn text-blue-600">
-                <i class="fa-regular fa-pen-to-square mr-2"></i>수정
+                <i class="fa-regular fa-pen-to-square mr-2"></i>
+                {{ $t("수정") }}
               </button>
               <button
                 @click.stop="handleDelete"
                 class="menu-btn text-red-500 hover:bg-red-50"
               >
-                <i class="fa-regular fa-trash-can mr-2"></i>삭제
+                <i class="fa-regular fa-trash-can mr-2"></i> {{ $t("삭제") }}
               </button>
             </div>
           </transition>

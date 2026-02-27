@@ -145,7 +145,7 @@ export default {
           type: "route",
           to: "/share",
           label: "정보",
-          icon: "fa-solid fa-paper-plane",
+          icon: "fa-regular fa-newspaper",
         },
         {
           type: "route",

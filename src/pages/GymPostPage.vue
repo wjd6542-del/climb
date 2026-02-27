@@ -3,12 +3,12 @@
     <div>
       <!-- 타이틀 -->
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold">정보공유</h1>
+        <h1 class="text-xl font-bold">{{ $t("정보") }}</h1>
         <button
           class="px-3 py-1.5 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
           @click="initForm"
         >
-          <i class="fa-solid fa-plus"></i> 글쓰기
+          <i class="fa-solid fa-plus"></i> {{ $t("글쓰기") }}
         </button>
       </div>
 
@@ -31,7 +31,7 @@
             :options="gymList"
             labelKey="name"
             valueKey="id"
-            placeholder="장소를 선택하세요"
+            :placeholder="$t('장소를 선택하세요')"
             class="bg-white border border-gray-200 rounded-lg h-[40px]"
             @change="resetAndSearch"
           />
@@ -41,7 +41,7 @@
           <input
             v-model="search.keyword"
             class="w-full border rounded px-3 py-2 text-sm min-h-[42px]"
-            placeholder="제목 검색"
+            :placeholder="$t('제목 검색')"
             @change="resetAndSearch"
           />
         </div>
@@ -56,28 +56,28 @@
       />
 
       <div v-if="isLoading" class="text-center py-6 text-gray-400">
-        불러오는 중...
+        {{ $t("불러오는 중") }}
       </div>
 
       <div
         v-if="!hasMore && list.length && list.length > 20"
         class="text-center py-6 text-gray-300"
       >
-        마지막 게시글입니다
+        {{ $t("마지막 게시글입니다") }}
       </div>
     </div>
 
     <!-- 등록 / 수정 모달 -->
     <BaseModal
       v-model="openModal"
-      :title="isEdit ? '게시글 수정' : '정보 공유 등록'"
+      :title="isEdit ? $t('수정') : $t('등록')"
       width="lg"
     >
       <template #header>
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-semibold flex items-center gap-2">
             <i class="fa-solid fa-pen"></i>
-            {{ isEdit ? "게시글 수정" : "정보 공유 등록" }}
+            {{ isEdit ? $t("수정") : $t("등록") }}
           </h2>
           <button
             class="text-gray-400 hover:text-gray-600"
@@ -86,18 +86,17 @@
         </div>
       </template>
 
-      <!-- 폼 -->
       <div class="space-y-4 text-sm">
         <!-- 위치 -->
         <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium">위치</label>
+          <label class="w-28 text-sm font-medium">{{ $t("위치") }}</label>
           <div class="flex-1">
             <SearchSelect
               v-model="form.gym_id"
               :options="gymList"
               labelKey="name"
               valueKey="id"
-              placeholder="장소 선택"
+              :placeholder="$t('장소 선택')"
               class="bg-white border border-gray-200 rounded-lg"
             />
           </div>
@@ -105,11 +104,11 @@
 
         <!-- 제목 -->
         <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium">제목</label>
+          <label class="w-28 text-sm font-medium">{{ $t("제목") }}</label>
           <div class="flex-1">
             <input
               v-model="form.title"
-              placeholder="제목 입력"
+              :placeholder="$t('제목 입력')"
               class="w-full border rounded px-3 py-2"
             />
           </div>
@@ -117,7 +116,7 @@
 
         <!-- 내용 -->
         <div class="flex items-start gap-4">
-          <label class="w-28 text-sm font-medium mt-2">내용</label>
+          <label class="w-28 text-sm font-medium mt-2">{{ $t("내용") }}</label>
           <div class="flex-1">
             <Editor v-model="form.content" />
           </div>
@@ -125,7 +124,7 @@
 
         <!-- 별점 -->
         <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium">별점</label>
+          <label class="w-28 text-sm font-medium">{{ $t("별점") }}</label>
           <div class="flex text-lg">
             <i
               v-for="n in 5"
@@ -143,7 +142,7 @@
 
         <!-- 파일 업로드 -->
         <div class="flex items-center gap-4">
-          <label class="w-28 text-sm font-medium">이미지</label>
+          <label class="w-28 text-sm font-medium">{{ $t("이미지") }}</label>
           <div class="flex-1">
             <BaseImage :multiple="true" @change="handleFiles" />
           </div>
@@ -163,7 +162,7 @@
               @click="removeExistingImage(img)"
               class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
             >
-              삭제
+              {{ $t("삭제") }}
             </button>
           </div>
         </div>
@@ -176,34 +175,32 @@
               @click="removeNewImage(i)"
               class="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded hover:bg-red-500"
             >
-              삭제
+              {{ $t("삭제") }}
             </button>
           </div>
         </div>
       </div>
 
       <template #footer>
-        <!-- 버튼 -->
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="px-4 py-2 text-sm border rounded"
             @click="openModal = false"
           >
-            취소
+            {{ $t("취소") }}
           </button>
 
           <button
             class="px-4 py-2 text-sm bg-blue-500 text-white rounded"
             @click="submit"
           >
-            {{ isEdit ? "수정" : "등록" }}
+            {{ isEdit ? $t("수정") : $t("등록") }}
           </button>
         </div>
       </template>
     </BaseModal>
   </div>
 </template>
-
 <script lang="ts">
 import api from "@/lib/api.js";
 import SearchSelect from "@/components/common/SearchSelect.vue";

@@ -15,28 +15,27 @@
 
           <!-- 타이틀 -->
           <h2 class="text-3xl font-bold text-gray-800">
-            등록된 정보가 없습니다
+            {{ $t("등록된 정보가 없습니다") }}
           </h2>
-
           <!-- 설명 -->
           <p class="text-gray-500 text-base leading-relaxed">
-            요청하신 장소 정보를 찾을 수 없습니다.<br />
-            삭제되었거나 존재하지 않는 데이터일 수 있습니다.
+            {{ $t("요청하신 정보를 찾을 수 없습니다.") }}<br />
+            {{ $t("삭제되었거나 존재하지 않는 데이터일 수 있습니다.") }}
           </p>
 
           <!-- 버튼 -->
           <RouterLink
-            to="/search"
+            to="/"
             class="inline-flex items-center gap-3 px-8 py-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 active:scale-95 transition-all duration-200"
           >
             <i class="fa-solid fa-magnifying-glass"></i>
-            메인으로
+            {{ $t("메인으로") }}
           </RouterLink>
         </div>
       </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-4 py-8 space-y-10">
+    <div v-if="gym" class="max-w-6xl mx-auto px-4 py-8 space-y-10">
       <!-- 🏢 장소 정보 -->
       <section
         class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
@@ -46,7 +45,7 @@
             class="text-lg font-semibold text-gray-800 flex items-center gap-2"
           >
             <i class="fa-solid fa-location-dot text-blue-500"></i>
-            장소 정보
+            {{ $t("장소") }}
           </h2>
         </div>
 
@@ -64,7 +63,7 @@
             class="text-lg font-semibold text-gray-800 flex items-center gap-2"
           >
             <i class="fa-solid fa-layer-group text-red-500"></i>
-            난이도 정보
+            {{ $t("난이도") }}
           </h2>
         </div>
 

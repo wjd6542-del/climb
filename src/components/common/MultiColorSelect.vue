@@ -2,7 +2,7 @@
   <div ref="wrapper" class="relative w-full">
     <!-- 라벨 -->
     <label v-if="label" class="block mb-1 text-sm font-medium text-gray-700">
-      {{ label }}
+      {{ $t(label) }}
     </label>
 
     <!-- 트리거 -->
@@ -83,7 +83,7 @@
             :style="{ backgroundColor: item.code || item[valueKey] }"
           ></span>
 
-          <span>{{ item[labelKey] }}</span>
+          <span>{{ $t(item[labelKey]) }}</span>
         </label>
 
         <div
