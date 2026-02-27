@@ -1,7 +1,7 @@
 <template>
   <RouterView v-slot="{ Component, route }">
     <transition name="layout" mode="out-in">
-      <component :is="Component" :key="route.matched[0].path" />
+      <component :is="Component" :key="route.fullPath" />
     </transition>
   </RouterView>
 </template>
