@@ -3,8 +3,6 @@ import App from './App.vue'
 import { router } from './router'
 import { createPinia } from "pinia";
 
-import { useI18nStore } from "@/stores/i18nStore";
-
 import './style.css'
 // 아이콘 폰트 어섬 추가
 import '@fortawesome/fontawesome-free/css/all.min.css'

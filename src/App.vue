@@ -4,14 +4,31 @@
       <component :is="Component" :key="route.fullPath" />
     </transition>
   </RouterView>
+
+  <!-- 기존 Alert -->
+  <AlertModal
+    :visible="alertStore.visible"
+    :title="alertStore.title"
+    :message="alertStore.message"
+    :type="alertStore.type"
+    @ok="alertStore.ok"
+    @cancel="alertStore.cancel"
+  />
 </template>
 
 <script lang="ts">
 import { onMounted, getCurrentInstance } from "vue";
 import { useI18nStore } from "@/stores/i18nStore";
+import { alertStore } from "@/plugins/alert.store";
+import AlertModal from "@/components/common/AlertModal.vue";
 
 export default {
   name: "App",
+
+  components: {
+    AlertModal,
+  },
+
   setup() {
     const i18n = useI18nStore();
     const { appContext } = getCurrentInstance() as any;
@@ -25,7 +42,7 @@ export default {
       return i18n.t(key);
     };
 
-    return {};
+    return { alertStore };
   },
 };
 </script>
