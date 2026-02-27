@@ -34,3 +34,38 @@
 .ag-theme-alpine .row-inactive {
 	@apply bg-red-100 text-red-700 !important;
 }
+
+.page-enter-active,
+.page-leave-active {
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-enter-from {
+	opacity: 0;
+	transform: translateX(30px);
+}
+
+.page-leave-to {
+	opacity: 0;
+	transform: translateX(-30px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+	transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+	opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+	transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+	transform: translateX(100%);
+}
