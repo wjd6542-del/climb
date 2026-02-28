@@ -66,26 +66,22 @@
         </div>
       </div>
 
-      <GymList
-        :gyms="GYMS"
-        :changeFlg="true"
-        :mainFlg="true"
-        :deleteHandler="deleteGym"
-        :bookmarkHandler="onBookmark"
-        :changeHandler="saveForm"
-        :detailHandler="onDetail"
-      />
-
-      <div v-if="isLoading" class="text-center py-6 text-gray-400">
-        불러오는 중...
-      </div>
-
-      <div
-        v-if="!hasMore && GYMS.length"
-        class="text-center py-6 text-gray-300"
+      <!-- 🔥 InfiniteScroll 적용 -->
+      <InfiniteScroll
+        :loading="isLoading"
+        :hasMore="hasMore"
+        @load-more="loadMore"
       >
-        마지막 데이터입니다
-      </div>
+        <GymList
+          :gyms="GYMS"
+          :changeFlg="true"
+          :mainFlg="true"
+          :deleteHandler="deleteGym"
+          :bookmarkHandler="onBookmark"
+          :changeHandler="saveForm"
+          :detailHandler="onDetail"
+        />
+      </InfiniteScroll>
     </div>
 
     <!-- 등록 모달 -->
@@ -391,6 +387,7 @@ import SearchSelect from "@/components/common/SearchSelect.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import MultiColorSelect from "@/components/common/MultiColorSelect.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
+import InfiniteScroll from "@/components/common/InfiniteScroll.vue";
 
 export default {
   name: "GymPage",
@@ -410,6 +407,7 @@ export default {
     BaseModal,
     BaseImage,
     MultiColorSelect,
+    InfiniteScroll,
   },
 
   data() {
@@ -473,6 +471,19 @@ export default {
   },
 
   methods: {
+    /* 🔥 InfiniteScroll loadMore 추가 */
+    loadMore() {
+      if (this.isLoading || !this.hasMore) return;
+
+      // 🔥 최초 로드 직후 자동 트리거 방지
+      if (this.page === 1 && this.GYMS.length < this.limit) {
+        return;
+      }
+
+      this.page++;
+      this.loadList(true);
+    },
+
     toggleActive() {
       this.form.is_active = this.form.is_active === "y" ? "n" : "y";
     },
@@ -712,22 +723,6 @@ export default {
     },
 
     /* =========================
-       스크롤 감지
-    ========================== */
-    handleScroll() {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.documentElement.scrollHeight;
-
-      if (scrollTop + windowHeight >= fullHeight - 150) {
-        if (!this.isLoading && this.hasMore) {
-          this.page++;
-          this.loadList(true);
-        }
-      }
-    },
-
-    /* =========================
        검색 (초기화)
     ========================== */
     search_list() {
@@ -859,12 +854,6 @@ export default {
     window.kakao.maps.load(() => {
       this.geocoder = new window.kakao.maps.services.Geocoder();
     });
-
-    window.addEventListener("scroll", this.handleScroll);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
   },
 };
 </script>

@@ -1,86 +1,49 @@
 ﻿<template>
   <div class="w-full">
-    <!-- 실제 리스트 영역 -->
     <slot />
 
-    <!-- 로딩 표시 -->
-    <div v-if="loading" class="flex justify-center py-6">
-      <div
-        class="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full"
-      ></div>
+    <div v-if="loading" class="text-center py-6 text-gray-400">
+      불러오는 중...
     </div>
 
-    <!-- 더 이상 없음 -->
-    <div
-      v-if="!hasMore && !loading"
-      class="text-center text-sm text-gray-400 py-6"
-    >
+    <div v-if="!hasMore && !loading" class="text-center py-6 text-gray-300">
       마지막 데이터입니다
     </div>
 
-    <!-- 바닥 감지용 -->
-    <div ref="sentinel" class="h-2"></div>
+    <!-- observer 영역 -->
+    <div ref="sentinel" class="h-1"></div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "InfiniteScroll",
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    hasMore: {
-      type: Boolean,
-      default: true,
-    },
-    threshold: {
-      type: Number,
-      default: 0.1,
-    },
-    rootMargin: {
-      type: String,
-      default: "0px 0px 200px 0px", // 미리 로딩
-    },
-  },
+const props = defineProps({
+  loading: Boolean,
+  hasMore: Boolean,
+});
 
-  emits: ["loadMore"],
+const emit = defineEmits(["load-more"]);
 
-  mounted() {
-    this.createObserver();
-  },
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
 
-  beforeUnmount() {
-    this.destroyObserver();
-  },
-
-  methods: {
-    createObserver() {
-      this.observer = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-
-          if (entry.isIntersecting && !this.loading && this.hasMore) {
-            this.$emit("loadMore");
-          }
-        },
-        {
-          threshold: this.threshold,
-          rootMargin: this.rootMargin,
-        },
-      );
-
-      this.observer.observe(this.$refs.sentinel);
-    },
-
-    destroyObserver() {
-      if (this.observer) {
-        this.observer.disconnect();
-        this.observer = null;
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !props.loading && props.hasMore) {
+        emit("load-more");
       }
     },
-  },
-};
+    { rootMargin: "200px" },
+  );
+
+  if (sentinel.value) {
+    observer.observe(sentinel.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+});
 </script>

@@ -55,25 +55,20 @@
         </div>
       </div>
 
-      <!-- 리스트 -->
-      <RouteList
-        :routs="list"
-        :changeFlg="true"
-        :bookmarkHandler="onBookmark"
-        :changeHandler="dataView"
-        :deleteHandler="deleteData"
-      />
-
-      <div v-if="isLoading" class="text-center py-6 text-gray-400">
-        불러오는 중...
-      </div>
-
-      <div
-        v-if="!hasMore && list.length && list.length > 20"
-        class="text-center py-6 text-gray-300"
+      <InfiniteScroll
+        :loading="isLoading"
+        :hasMore="hasMore"
+        @load-more="loadMore"
       >
-        마지막 게시글입니다
-      </div>
+        <!-- 리스트 -->
+        <RouteList
+          :routs="list"
+          :changeFlg="true"
+          :bookmarkHandler="onBookmark"
+          :changeHandler="dataView"
+          :deleteHandler="deleteData"
+        />
+      </InfiniteScroll>
     </div>
 
     <!-- 등록 / 수정 모달 -->
@@ -287,6 +282,7 @@ import Editor from "@/components/common/Editor.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
 import RouteList from "@/components/route/RouteList.vue";
+import InfiniteScroll from "@/components/common/InfiniteScroll.vue";
 
 export default {
   name: "GradePage",
@@ -297,6 +293,7 @@ export default {
     BaseModal,
     BaseImage,
     RouteList,
+    InfiniteScroll,
   },
 
   setup() {
@@ -395,6 +392,18 @@ export default {
   },
 
   methods: {
+    /* 🔥 InfiniteScroll loadMore 추가 */
+    loadMore() {
+      if (this.isLoading || !this.hasMore) return;
+
+      // 🔥 최초 로드 직후 자동 트리거 방지
+      if (this.page === 1 && this.list.length < this.limit) {
+        return;
+      }
+
+      this.page++;
+      this.loadList(true);
+    },
     setAuto() {
       let split = this.setting.split("-");
       this.form.environment = split[0];
@@ -479,22 +488,6 @@ export default {
         console.error("리스트 로딩 실패", e);
       } finally {
         this.isLoading = false;
-      }
-    },
-
-    /* =====================
-       스크롤 감지
-    ===================== */
-    handleScroll() {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.documentElement.scrollHeight;
-
-      if (scrollTop + windowHeight >= fullHeight - 150) {
-        if (!this.isLoading && this.hasMore) {
-          this.page++;
-          this.loadList(true);
-        }
       }
     },
 
@@ -672,12 +665,6 @@ export default {
 
     // 메인 릭스트 로드
     await this.loadList(false);
-
-    window.addEventListener("scroll", this.handleScroll);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
   },
 };
 </script>

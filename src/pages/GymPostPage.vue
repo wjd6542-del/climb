@@ -47,24 +47,19 @@
         </div>
       </div>
 
-      <!-- 리스트 -->
-      <PostList
-        :posts="list"
-        :changeFlg="true"
-        :changeHandler="dataView"
-        :deleteHandler="deletePost"
-      />
-
-      <div v-if="isLoading" class="text-center py-6 text-gray-400">
-        {{ $t("불러오는 중") }}
-      </div>
-
-      <div
-        v-if="!hasMore && list.length && list.length > 20"
-        class="text-center py-6 text-gray-300"
+      <InfiniteScroll
+        :loading="isLoading"
+        :hasMore="hasMore"
+        @load-more="loadMore"
       >
-        {{ $t("마지막 게시글입니다") }}
-      </div>
+        <!-- 리스트 -->
+        <PostList
+          :posts="list"
+          :changeFlg="true"
+          :changeHandler="dataView"
+          :deleteHandler="deletePost"
+        />
+      </InfiniteScroll>
     </div>
 
     <!-- 등록 / 수정 모달 -->
@@ -209,6 +204,7 @@ import DateRangePicker from "@/components/common/DateRangePicker.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import PostList from "@/components/gymPost/PostList.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
+import InfiniteScroll from "@/components/common/InfiniteScroll.vue";
 
 export default {
   name: "GymPostPage",
@@ -219,6 +215,7 @@ export default {
     DateRangePicker,
     BaseModal,
     BaseImage,
+    InfiniteScroll,
   },
 
   data() {
@@ -254,6 +251,19 @@ export default {
   },
 
   methods: {
+    /* 🔥 InfiniteScroll loadMore 추가 */
+    loadMore() {
+      if (this.isLoading || !this.hasMore) return;
+
+      // 🔥 최초 로드 직후 자동 트리거 방지
+      if (this.page === 1 && this.list.length < this.limit) {
+        return;
+      }
+
+      this.page++;
+      this.loadList(true);
+    },
+
     /* =====================
        무한스크롤 리스트 로딩
     ===================== */
@@ -294,22 +304,6 @@ export default {
         console.error("리스트 로딩 실패", e);
       } finally {
         this.isLoading = false;
-      }
-    },
-
-    /* =====================
-       스크롤 감지
-    ===================== */
-    handleScroll() {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.documentElement.scrollHeight;
-
-      if (scrollTop + windowHeight >= fullHeight - 150) {
-        if (!this.isLoading && this.hasMore) {
-          this.page++;
-          this.loadList(true);
-        }
       }
     },
 
@@ -447,12 +441,6 @@ export default {
   async mounted() {
     await this.loadGymsList();
     await this.loadList(false);
-
-    window.addEventListener("scroll", this.handleScroll);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
   },
 };
 </script>
