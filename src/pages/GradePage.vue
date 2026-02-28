@@ -144,8 +144,8 @@
               <SearchSelect
                 v-model="form.difficulty"
                 :options="l_grade"
-                labelKey="text"
-                valueKey="value"
+                labelKey="name"
+                valueKey="name"
                 placeholder="리드 난이도 선택"
                 class="bg-white border border-gray-200 rounded-lg"
               />
@@ -157,8 +157,8 @@
               <SearchSelect
                 v-model="form.difficulty"
                 :options="v_grade"
-                labelKey="text"
-                valueKey="value"
+                labelKey="name"
+                valueKey="name"
                 placeholder="볼더링 난이도 선택"
                 class="bg-white border border-gray-200 rounded-lg"
               />
@@ -176,8 +176,8 @@
             <SearchColorSelect
               v-model="form.route_color"
               :options="route_color"
-              labelKey="text"
-              valueKey="value"
+              labelKey="name"
+              valueKey="code"
               placeholder="색상 선택"
               class="bg-white border border-gray-200 rounded-lg"
             />
@@ -636,10 +636,21 @@ export default {
       const res = await api.post("/api/settings/getGradeList");
       this.climb_type = res.data.climb_type;
       this.environment_type = res.data.environment_type;
-      this.v_grade = res.data.v_grade;
-      this.l_grade = res.data.l_grade;
       this.rock_type = res.data.rock_type;
-      this.route_color = res.data.route_color;
+    },
+
+    async loadColor() {
+      const res = await api.post("/api/boulderColor/list");
+      this.route_color = res.data;
+    },
+
+    async loadGrade() {
+      const res = await api.post("/api/difficulty/list");
+      const list = res.data;
+
+      console.log("list ", list);
+      this.v_grade = list.filter((row: any) => row.code == "BOULDER");
+      this.l_grade = list.filter((row: any) => row.code == "LEAD");
     },
 
     async deleteData(data: any) {
@@ -662,6 +673,8 @@ export default {
     // 환경설정 로드
     await this.loadGymsList();
     await this.loadSetting();
+    await this.loadColor();
+    await this.loadGrade();
 
     // 메인 릭스트 로드
     await this.loadList(false);

@@ -93,8 +93,8 @@ export default {
   props: {
     modelValue: [String, Number, null],
     options: { type: Array, required: true },
-    labelKey: { type: String, default: "label" },
-    valueKey: { type: String, default: "value" },
+    labelKey: { type: String, default: "name" },
+    valueKey: { type: String, default: "code" },
 
     placeholder: {
       type: String,
