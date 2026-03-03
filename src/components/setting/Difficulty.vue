@@ -198,6 +198,8 @@ export default {
           return;
         }
 
+        console.log("check >> ", rows);
+
         await api.post("/api/difficulty/batchSave", rows);
         this.$toast.success("저장 완료");
         this.loadList();

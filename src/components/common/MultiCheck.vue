@@ -19,7 +19,7 @@
             class="flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded"
           >
             <i v-if="item.icon" :class="item.icon"></i>
-            {{ item[textKey] }}
+            {{ $t(item[textKey]) }}
           </span>
         </template>
 
