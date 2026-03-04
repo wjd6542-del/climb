@@ -252,8 +252,6 @@ export default {
         update: [this.selectedRow],
       });
 
-      console.log("row data change >>>", this.selectedRow);
-
       // input 초기화 (같은 파일 재선택 가능하게)
       e.target.value = "";
     },

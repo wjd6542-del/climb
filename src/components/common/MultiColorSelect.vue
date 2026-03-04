@@ -171,7 +171,6 @@ export default {
     },
 
     emitChange() {
-      console.log("선택 순서", this.innerValue);
       this.$emit("update:modelValue", this.innerValue);
       this.$emit("change", this.innerValue);
     },

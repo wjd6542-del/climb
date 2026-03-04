@@ -204,7 +204,6 @@ export default {
         this.$toast.success("저장 완료");
         this.loadList();
       } catch (e) {
-        console.error("오류 정보???", e);
         this.$toast.error(`${e.message}`);
       }
     },
