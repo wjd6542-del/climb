@@ -10,9 +10,10 @@
         <span class="hidden sm:inline">{{ $t("클라이밍") }} GO</span>
       </RouterLink>
 
-      <!-- 🔥 데스크탑 네비 -->
+      <!-- 데스크탑 네비 -->
       <nav class="hidden md:flex gap-6 text-sm font-medium items-center">
         <template v-for="menu in menus" :key="menu.label">
+          <!-- 라우터 메뉴 -->
           <RouterLink
             v-if="menu.type === 'route'"
             :to="menu.to"
@@ -31,16 +32,18 @@
             </span>
           </RouterLink>
 
+          <!-- 액션 메뉴 -->
           <button
             v-else
             class="relative flex items-center gap-2 text-gray-600 hover:text-blue-500 transition"
-            @click="$emit(menu.event)"
+            @click="handleAction(menu)"
           >
             <i :class="menu.icon"></i>
             {{ $t(menu.label) }}
 
+            <!-- 북마크 카운트 -->
             <span
-              v-if="bookmarkStore?.count > 0"
+              v-if="bookmarkStore.count > 0"
               class="absolute -top-2 -right-3 text-xs bg-red-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
             >
               {{ bookmarkStore.count }}
@@ -61,7 +64,7 @@
         </BaseDropdown>
       </nav>
 
-      <!-- 🔥 모바일 햄버거 -->
+      <!-- 모바일 햄버거 -->
       <button
         class="md:hidden text-xl text-gray-700"
         @click="mobileOpen = !mobileOpen"
@@ -70,10 +73,11 @@
       </button>
     </div>
 
-    <!-- 🔥 모바일 메뉴 -->
+    <!-- 모바일 메뉴 -->
     <div v-show="mobileOpen" class="md:hidden bg-white border-t shadow-md">
       <div class="flex flex-col p-4 gap-4 text-sm">
         <template v-for="menu in menus" :key="'m-' + menu.label">
+          <!-- 라우터 메뉴 -->
           <RouterLink
             v-if="menu.type === 'route'"
             :to="menu.to"
@@ -84,22 +88,24 @@
             {{ $t(menu.label) }}
           </RouterLink>
 
+          <!-- 액션 메뉴 -->
           <button
             v-else
             class="flex items-center gap-3 text-gray-700 hover:text-blue-600"
-            @click="handleMobileAction(menu.event)"
+            @click="handleMobileAction(menu)"
           >
             <i :class="menu.icon"></i>
             {{ $t(menu.label) }}
           </button>
         </template>
 
-        <!-- 언어 선택 -->
+        <!-- 언어 -->
         <BaseDropdown v-model="currentLocale" :items="languages" />
       </div>
     </div>
   </header>
 </template>
+
 <script>
 import BaseDropdown from "@/components/common/BaseDropdown.vue";
 import { useBookmarkStore } from "@/stores/bookmarkStore";
@@ -112,12 +118,14 @@ export default {
     BaseDropdown,
   },
 
-  emits: ["open-bookmark"],
-
   setup() {
     const bookmarkStore = useBookmarkStore();
     const i18nStore = useI18nStore();
-    return { bookmarkStore, i18nStore };
+
+    return {
+      bookmarkStore,
+      i18nStore,
+    };
   },
 
   data() {
@@ -156,8 +164,8 @@ export default {
         {
           type: "action",
           label: "북마크",
-          icon: "fa-regular fa-bookmark",
-          event: "open-bookmark",
+          icon: "fa-solid fa-bookmark",
+          action: "bookmark",
         },
       ],
 
@@ -167,6 +175,7 @@ export default {
         { value: "ja", label: "日本語" },
         { value: "zh", label: "中文" },
       ],
+
       mobileOpen: false,
     };
   },
@@ -183,8 +192,14 @@ export default {
   },
 
   methods: {
-    handleMobileAction(eventName) {
-      this.$emit(eventName);
+    handleAction(menu) {
+      if (menu.action === "bookmark") {
+        this.bookmarkStore.openPanel();
+      }
+    },
+
+    handleMobileAction(menu) {
+      this.handleAction(menu);
       this.mobileOpen = false;
     },
   },

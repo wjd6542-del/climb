@@ -648,7 +648,6 @@ export default {
       const res = await api.post("/api/difficulty/list");
       const list = res.data;
 
-      console.log("list ", list);
       this.v_grade = list.filter((row: any) => row.code == "BOULDER");
       this.l_grade = list.filter((row: any) => row.code == "LEAD");
     },

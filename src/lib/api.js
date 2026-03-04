@@ -9,10 +9,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  //console.log("🚀 요청 URL:", config.url);
-  //console.log("📦 요청 헤더:", config.headers);
-  //console.log("📨 요청 데이터:", config.data);
-
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

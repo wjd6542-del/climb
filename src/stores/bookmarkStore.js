@@ -3,6 +3,7 @@
 export const useBookmarkStore = defineStore("bookmark", {
   state: () => ({
     gyms: JSON.parse(localStorage.getItem("gymBookmarks") || "[]"),
+    panelOpen: false, // 🔥 패널 상태
   }),
 
   getters: {
@@ -41,6 +42,21 @@ export const useBookmarkStore = defineStore("bookmark", {
     clear() {
       this.gyms = [];
       this.save();
+    },
+
+    // 🔥 패널 제어
+    openPanel() {
+      this.panelOpen = true;
+      document.body.style.overflow = "hidden";
+    },
+
+    closePanel() {
+      this.panelOpen = false;
+      document.body.style.overflow = "";
+    },
+
+    togglePanel() {
+      this.panelOpen ? this.closePanel() : this.openPanel();
     },
   },
 });
