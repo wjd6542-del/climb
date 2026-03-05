@@ -15,6 +15,8 @@
     @cancel="alertStore.cancel"
   />
 
+  <ScrollTop />
+
   <!-- overlay -->
   <transition name="fade">
     <div
@@ -51,9 +53,11 @@
 import { onMounted, getCurrentInstance } from "vue";
 import { useI18nStore } from "@/stores/i18nStore";
 import { alertStore } from "@/plugins/alert.store";
+import { useBookmarkStore } from "@/stores/bookmarkStore";
+
 import AlertModal from "@/components/common/AlertModal.vue";
 import BookmarkList from "@/components/common/BookmarkList.vue";
-import { useBookmarkStore } from "@/stores/bookmarkStore";
+import ScrollTop from "@/components/common/ScrollTop.vue";
 
 export default {
   name: "App",
@@ -61,6 +65,7 @@ export default {
   components: {
     AlertModal,
     BookmarkList,
+    ScrollTop,
   },
 
   setup() {
