@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="relative w-full">
+  <div ref="wrapper" class="relative w-full">
     <!-- 라벨 -->
     <label v-if="label" class="block mb-1 text-sm font-medium text-gray-700">
       {{ $t(label) }}
@@ -7,7 +7,7 @@
 
     <!-- 선택 영역 -->
     <div
-      @click.stop="toggle"
+      @click="toggle"
       class="border rounded px-3 py-2 cursor-pointer flex items-center justify-between min-h-[42px]"
     >
       <!-- 선택 값 표시 -->
@@ -28,15 +28,23 @@
         </span>
       </div>
 
-      <!-- 🔥 초기화 버튼 -->
-      <button
-        v-if="selectedItems.length"
-        @click.stop="clearAll"
-        type="button"
-        class="ml-2 text-xs text-red-500 hover:text-red-600"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <!-- 우측 버튼 -->
+      <div class="flex items-center gap-2">
+        <!-- 초기화 버튼 -->
+        <button
+          v-if="selectedItems.length"
+          @click.stop="clearAll"
+          type="button"
+          class="ml-2 text-xs text-red-500 hover:text-red-600"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <i
+          class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+          :class="open ? 'rotate-180 text-blue-500' : 'text-gray-400'"
+        ></i>
+      </div>
     </div>
 
     <!-- 드롭다운 -->
@@ -99,21 +107,20 @@ export default {
   },
 
   mounted() {
-    document.addEventListener("click", this.handleClick);
+    document.addEventListener("mousedown", this.handleClick);
   },
 
   beforeUnmount() {
-    document.removeEventListener("click", this.handleClick);
+    document.removeEventListener("mousedown", this.handleClick);
   },
 
   methods: {
-    toggle(e: Event) {
-      e.stopPropagation();
+    toggle() {
       this.open = !this.open;
     },
 
     handleClick(e: any) {
-      if (!this.$el.contains(e.target)) {
+      if (!this.$refs.wrapper.contains(e.target)) {
         this.open = false;
       }
     },
