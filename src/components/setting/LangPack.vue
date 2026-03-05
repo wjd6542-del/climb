@@ -54,6 +54,7 @@
 <script>
 import api from "@/lib/api.js";
 import { AgGridVue } from "ag-grid-vue3";
+import { useI18nStore } from "@/stores/i18nStore";
 
 export default {
   name: "i18nTable",
@@ -66,6 +67,7 @@ export default {
       tempId: -1,
       rowData: [],
       columnDefs: [],
+      i18n: useI18nStore(),
 
       gridOptions: {
         getRowId: (params) => String(params.data.id), // ⭐ 필수
@@ -282,6 +284,7 @@ export default {
         await api.post("/api/langPack/batchSave", save_row);
         this.$toast.success("저장 완료");
         this.loadList();
+        this.i18n.loadLangPacks();
       } catch (e) {
         console.error(e);
         this.$toast.error("저장 실패");
@@ -308,6 +311,7 @@ export default {
         await api.post("/api/langPack/batchDelete", rows);
         this.$toast.success("삭제 완료");
         this.loadList();
+        this.i18n.loadLangPacks();
       } catch (e) {
         this.$toast.error("삭제 중 오류가 발생했습니다");
       }
