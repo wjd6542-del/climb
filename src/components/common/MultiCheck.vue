@@ -34,8 +34,7 @@
         <button
           v-if="selectedItems.length"
           @click.stop="clearAll"
-          type="button"
-          class="ml-2 text-xs text-red-500 hover:text-red-600"
+          class="text-gray-400 hover:text-red-500 text-sm"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
