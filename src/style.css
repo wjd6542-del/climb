@@ -69,3 +69,12 @@
 .slide-leave-to {
 	transform: translateX(100%);
 }
+
+.scale-enter-active {
+	transition: all 0.2s ease;
+}
+
+.scale-enter-from {
+	transform: scale(0.95);
+	opacity: 0;
+}

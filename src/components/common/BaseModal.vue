@@ -174,22 +174,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.scale-enter-active {
-  transition: all 0.2s ease;
-}
-.scale-enter-from {
-  transform: scale(0.95);
-  opacity: 0;
-}
-</style>
