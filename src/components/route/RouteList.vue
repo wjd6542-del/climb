@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div v-if="routs.length === 0" class="text-gray-500">
       <div class="p-5 rounded-xl border bg-white shadow-sm text-center">
@@ -20,23 +20,15 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import RouteItem from "./RouteItem.vue";
+import type { Route } from "@/types";
 
-export default {
-  props: {
-    routs: {
-      type: Array,
-      required: true,
-    },
-    changeFlg: {
-      type: Boolean,
-    },
-    deleteHandler: { type: Function },
-    bookmarkHandler: { type: Function },
-    changeHandler: { type: Function },
-  },
-
-  components: { RouteItem },
-};
+defineProps<{
+  routs: Route[];
+  changeFlg?: boolean;
+  deleteHandler?: (route: Route) => void;
+  bookmarkHandler?: (route: Route) => void;
+  changeHandler?: (route: Route) => void;
+}>();
 </script>

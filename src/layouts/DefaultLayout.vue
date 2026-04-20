@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen bg-gray-50">
     <Header />
 
@@ -12,17 +12,6 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import Header from "@/components/layout/Header.vue";
-export default {
-  name: "DefaultLayout",
-
-  components: {
-    Header,
-  },
-
-  data() {
-    return {};
-  },
-};
 </script>

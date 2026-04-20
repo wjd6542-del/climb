@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="relative group">
     <div
       ref="card"
@@ -58,7 +58,7 @@
                 @click.stop="handleDelete"
                 class="menu-btn text-red-500 hover:bg-red-50"
               >
-                <i class="fa-regular fa-trash-can mr-2"></i> {{ $t("삭제") }}
+                <i class="fa-regular fa-trash-can mr-2"></i>{{ $t("삭제") }}
               </button>
             </div>
           </transition>
@@ -70,7 +70,7 @@
           class="inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg"
         >
           <i class="fa-solid fa-location-dot text-[11px]"></i>
-          {{ post.gym.name }}
+          {{ (post as any).gym?.name }}
         </span>
       </div>
 
@@ -108,9 +108,7 @@
           class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[9999]"
           @click.self="closeImage"
         >
-          <div
-            class="relative max-w-[90%] max-h-[90%] flex flex-col items-center"
-          >
+          <div class="relative max-w-[90%] max-h-[90%] flex flex-col items-center">
             <img
               :src="selectedImage"
               class="rounded-xl shadow-2xl object-contain max-h-[85vh]"
@@ -128,85 +126,58 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import DateTime from "@/components/common/DateTime.vue";
-import BaseDropdown from "@/components/common/BaseDropdown.vue";
+import type { GymPost } from "@/types";
 
-export default {
-  name: "PostItem",
-  components: {
-    DateTime,
-    BaseDropdown,
-  },
-  props: {
-    post: { type: Object, required: true },
-    changeFlg: { type: Boolean, default: false },
-    onChange: Function,
-    onDelete: Function,
-  },
-  emits: ["delete", "edit"],
-  data() {
-    return {
-      open: false,
-      selectedImage: null,
-      actionItems: [
-        {
-          value: "edit",
-          label: "수정",
-          icon: "fa-solid fa-pen-to-square",
-        },
-        {
-          value: "delete",
-          label: "삭제",
-          icon: "fa-solid fa-trash",
-          danger: true,
-        },
-      ],
-    };
-  },
-  computed: {
-    apiUrl() {
-      return import.meta.env.VITE_API_URL;
-    },
-  },
-  methods: {
-    goDetail() {
-      this.$router.push({
-        path: `/shareDetail`,
-        query: {
-          id: this.post.id,
-        },
-      });
-    },
-    toggle() {
-      this.open = !this.open;
-    },
-    handleChange() {
-      this.open = false;
-      this.onChange?.(this.post);
-    },
-    handleDelete() {
-      this.open = false;
-      this.onDelete?.(this.post);
-    },
-    openImage(url) {
-      this.selectedImage = url;
-      document.body.style.overflow = "hidden";
-    },
-    closeImage() {
-      this.selectedImage = null;
-      document.body.style.overflow = "";
-    },
-  },
-};
+const props = defineProps<{
+  post: GymPost;
+  changeFlg?: boolean;
+  onChange?: (post: GymPost) => void;
+  onDelete?: (post: GymPost) => void;
+}>();
+
+const router = useRouter();
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const open = ref(false);
+const selectedImage = ref<string | null>(null);
+
+function goDetail() {
+  router.push({ path: `/shareDetail`, query: { id: props.post.id } });
+}
+
+function toggle() {
+  open.value = !open.value;
+}
+
+function handleChange() {
+  open.value = false;
+  props.onChange?.(props.post);
+}
+
+function handleDelete() {
+  open.value = false;
+  props.onDelete?.(props.post);
+}
+
+function openImage(url: string) {
+  selectedImage.value = url;
+  document.body.style.overflow = "hidden";
+}
+
+function closeImage() {
+  selectedImage.value = null;
+  document.body.style.overflow = "";
+}
 </script>
 
 <style scoped>
-/* 줄바꿈 및 본문 가독성 */
 .prose {
   word-break: break-all;
 }
-/* 드롭다운 메뉴 버튼 */
 .menu-btn {
   @apply w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center active:bg-gray-100;
 }

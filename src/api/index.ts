@@ -1,0 +1,12 @@
+export { gymService } from "./gymService";
+export { gymDetailService } from "./gymDetailService";
+export { gymTypeService } from "./gymTypeService";
+export { amenitiesService } from "./amenitiesService";
+export { routeService } from "./routeService";
+export { gymPostService } from "./gymPostService";
+export { bannerService } from "./bannerService";
+export { boulderColorService } from "./boulderColorService";
+export { difficultyService } from "./difficultyService";
+export { settingsService } from "./settingsService";
+export { langPackService } from "./langPackService";
+export { uploadService } from "./uploadService";

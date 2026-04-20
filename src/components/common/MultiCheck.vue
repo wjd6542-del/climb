@@ -1,25 +1,22 @@
-﻿<template>
+<template>
   <div ref="wrapper" class="relative w-full">
-    <!-- 라벨 -->
     <label v-if="label" class="block mb-1 text-sm font-medium text-gray-700">
       {{ $t(label) }}
     </label>
 
-    <!-- 선택 영역 -->
     <div
       @click="toggle"
       class="border rounded px-3 py-2 cursor-pointer flex items-center justify-between min-h-[42px]"
     >
-      <!-- 선택 값 표시 -->
       <div class="flex flex-wrap gap-1 flex-1">
         <template v-if="selectedItems.length">
           <span
             v-for="item in selectedItems"
-            :key="item[idKey]"
+            :key="(item as any)[idKey]"
             class="flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded"
           >
-            <i v-if="item.icon" :class="item.icon"></i>
-            {{ $t(item[textKey]) }}
+            <i v-if="(item as any).icon" :class="(item as any).icon"></i>
+            {{ $t((item as any)[textKey]) }}
           </span>
         </template>
 
@@ -28,9 +25,7 @@
         </span>
       </div>
 
-      <!-- 우측 버튼 -->
       <div class="flex items-center gap-2">
-        <!-- 초기화 버튼 -->
         <button
           v-if="selectedItems.length"
           @click.stop="clearAll"
@@ -46,94 +41,90 @@
       </div>
     </div>
 
-    <!-- 드롭다운 -->
     <div
       v-if="open"
       class="absolute z-50 mt-1 w-full bg-white border rounded shadow max-h-60 overflow-y-auto"
     >
       <label
         v-for="item in items"
-        :key="item[idKey]"
+        :key="(item as any)[idKey]"
         class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
       >
         <input
           type="checkbox"
-          :value="item[idKey]"
+          :value="(item as any)[idKey]"
           v-model="innerValue"
           @change="emitChange"
         />
-        <i v-if="item.icon" :class="item.icon"></i>
-        {{ $t(item[textKey]) }}
+        <i v-if="(item as any).icon" :class="(item as any).icon"></i>
+        {{ $t((item as any)[textKey]) }}
       </label>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: "MultiCheck",
+<script setup lang="ts">
+import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
 
-  props: {
-    label: String,
-    placeholder: { type: String, default: "선택하세요." },
-    items: { type: Array, default: () => [] },
-    modelValue: { type: Array, default: () => [] },
-    idKey: { type: String, default: "id" },
-    textKey: { type: String, default: "name" },
+interface Props {
+  label?: string;
+  placeholder?: string;
+  items?: any[];
+  modelValue?: any[];
+  idKey?: string;
+  textKey?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  label: "",
+  placeholder: "선택하세요.",
+  items: () => [],
+  modelValue: () => [],
+  idKey: "id",
+  textKey: "name",
+});
+
+const emit = defineEmits<{
+  "update:modelValue": [value: any[]];
+  change: [value: any[]];
+}>();
+
+const wrapper = ref<HTMLElement | null>(null);
+const open = ref(false);
+const innerValue = ref<any[]>([...props.modelValue]);
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    innerValue.value = [...val];
   },
+);
 
-  emits: ["update:modelValue", "change"],
+const selectedItems = computed(() =>
+  props.items.filter((item: any) => innerValue.value.includes(item[props.idKey])),
+);
 
-  data() {
-    return {
-      open: false,
-      innerValue: [...this.modelValue],
-    };
-  },
+function toggle() {
+  open.value = !open.value;
+}
 
-  watch: {
-    modelValue(val: any[]) {
-      this.innerValue = [...val];
-    },
-  },
+function handleClick(e: MouseEvent) {
+  if (!wrapper.value?.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
 
-  computed: {
-    selectedItems(): any[] {
-      return this.items.filter((item: any) =>
-        this.innerValue.includes(item[this.idKey]),
-      );
-    },
-  },
+function emitChange() {
+  emit("update:modelValue", innerValue.value);
+  emit("change", innerValue.value);
+}
 
-  mounted() {
-    document.addEventListener("mousedown", this.handleClick);
-  },
+function clearAll() {
+  innerValue.value = [];
+  emit("update:modelValue", []);
+  emit("change", []);
+}
 
-  beforeUnmount() {
-    document.removeEventListener("mousedown", this.handleClick);
-  },
-
-  methods: {
-    toggle() {
-      this.open = !this.open;
-    },
-
-    handleClick(e: any) {
-      if (!this.$refs.wrapper.contains(e.target)) {
-        this.open = false;
-      }
-    },
-
-    emitChange() {
-      this.$emit("update:modelValue", this.innerValue);
-      this.$emit("change", this.innerValue);
-    },
-
-    clearAll() {
-      this.innerValue = [];
-      this.$emit("update:modelValue", []);
-      this.$emit("change", []);
-    },
-  },
-};
+onMounted(() => document.addEventListener("mousedown", handleClick));
+onBeforeUnmount(() => document.removeEventListener("mousedown", handleClick));
 </script>

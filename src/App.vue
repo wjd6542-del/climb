@@ -5,7 +5,6 @@
     </transition>
   </RouterView>
 
-  <!-- 기존 Alert -->
   <AlertModal
     :visible="alertStore.visible"
     :title="alertStore.title"
@@ -17,7 +16,6 @@
 
   <ScrollTop />
 
-  <!-- overlay -->
   <transition name="fade">
     <div
       v-if="bookmark.panelOpen"
@@ -26,7 +24,6 @@
     />
   </transition>
 
-  <!-- panel -->
   <transition name="slide">
     <div
       v-if="bookmark.panelOpen"
@@ -36,7 +33,6 @@
         <h3 class="font-semibold text-lg">
           <i class="fa-regular fa-bookmark"></i> 북마크
         </h3>
-
         <button @click="bookmark.closePanel()">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -49,7 +45,7 @@
   </transition>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { onMounted, getCurrentInstance } from "vue";
 import { useI18nStore } from "@/stores/i18nStore";
 import { alertStore } from "@/plugins/alert.store";
@@ -59,33 +55,20 @@ import AlertModal from "@/components/common/AlertModal.vue";
 import BookmarkList from "@/components/common/BookmarkList.vue";
 import ScrollTop from "@/components/common/ScrollTop.vue";
 
-export default {
-  name: "App",
+const i18n = useI18nStore();
+const bookmark = useBookmarkStore();
 
-  components: {
-    AlertModal,
-    BookmarkList,
-    ScrollTop,
-  },
+const instance = getCurrentInstance();
+if (instance) {
+  instance.appContext.config.globalProperties.$t = (key: string) => i18n.t(key);
+}
 
-  setup() {
-    const i18n = useI18nStore();
-    const { appContext } = getCurrentInstance() as any;
-    const bookmark = useBookmarkStore();
-
-    onMounted(() => {
-      i18n.initLocale();
-      i18n.loadLangPacks();
-    });
-
-    appContext.config.globalProperties.$t = (key: string) => {
-      return i18n.t(key);
-    };
-
-    return { alertStore, bookmark };
-  },
-};
+onMounted(() => {
+  i18n.initLocale();
+  i18n.loadLangPacks();
+});
 </script>
+
 <style>
 .layout-enter-active,
 .layout-leave-active {

@@ -1,27 +1,22 @@
-﻿<template>
+<template>
   <div ref="wrapper" class="relative w-full">
-    <!-- 라벨 -->
     <label v-if="label" class="block mb-1 text-sm font-medium text-gray-700">
       {{ $t(label) }}
     </label>
 
-    <!-- 트리거 -->
     <div :class="triggerClasses" @click.stop="toggle">
-      <!-- 선택된 값들 -->
       <div class="flex flex-wrap gap-2 flex-1">
         <template v-if="selectedItems.length">
           <span
             v-for="item in selectedItems"
-            :key="item[valueKey]"
+            :key="(item as any)[valueKey]"
             class="flex items-center gap-2 px-2 py-1 text-xs bg-blue-500 text-white rounded"
           >
-            <!-- 색상 박스 -->
             <span
               class="w-3 h-3 rounded border border-white"
-              :style="{ backgroundColor: item.code || item[valueKey] }"
+              :style="{ backgroundColor: (item as any).code || (item as any)[valueKey] }"
             ></span>
-
-            {{ item[labelKey] }}
+            {{ (item as any)[labelKey] }}
           </span>
         </template>
 
@@ -30,9 +25,7 @@
         </span>
       </div>
 
-      <!-- 우측 버튼 -->
       <div class="flex items-center gap-2">
-        <!-- 전체 초기화 -->
         <button
           v-if="innerValue.length"
           @click.stop="clearAll"
@@ -48,12 +41,10 @@
       </div>
     </div>
 
-    <!-- 드롭다운 -->
     <div
       v-if="open"
       class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-[9999]"
     >
-      <!-- 검색 -->
       <div class="p-2 border-b">
         <input
           v-model="keyword"
@@ -63,27 +54,25 @@
         />
       </div>
 
-      <!-- 리스트 -->
       <div class="max-h-60 overflow-y-auto">
         <label
           v-for="item in filteredOptions"
-          :key="item[valueKey]"
+          :key="(item as any)[valueKey]"
           class="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
         >
           <input
             type="checkbox"
-            :value="item[valueKey]"
+            :value="(item as any)[valueKey]"
             v-model="innerValue"
             @change="emitChange"
           />
 
-          <!-- 색상 박스 -->
           <span
             class="w-4 h-4 rounded border border-gray-300"
-            :style="{ backgroundColor: item.code || item[valueKey] }"
+            :style="{ backgroundColor: (item as any).code || (item as any)[valueKey] }"
           ></span>
 
-          <span>{{ $t(item[labelKey]) }}</span>
+          <span>{{ $t((item as any)[labelKey]) }}</span>
         </label>
 
         <div
@@ -97,95 +86,88 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MultiColorSelect",
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-  props: {
-    label: String,
-    placeholder: {
-      type: String,
-      default: "색상을 선택하세요",
-    },
-    options: { type: Array, required: true },
-    modelValue: { type: Array, default: () => [] },
-    labelKey: { type: String, default: "label" },
-    valueKey: { type: String, default: "value" },
-    colorKey: { type: String, default: "code" },
+interface Props {
+  label?: string;
+  placeholder?: string;
+  options: any[];
+  modelValue?: any[];
+  labelKey?: string;
+  valueKey?: string;
+  colorKey?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  label: "",
+  placeholder: "색상을 선택하세요",
+  modelValue: () => [],
+  labelKey: "label",
+  valueKey: "value",
+  colorKey: "code",
+});
+
+const emit = defineEmits<{
+  "update:modelValue": [value: any[]];
+  change: [value: any[]];
+}>();
+
+const wrapper = ref<HTMLElement | null>(null);
+const open = ref(false);
+const keyword = ref("");
+const innerValue = ref<any[]>([...props.modelValue]);
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    innerValue.value = [...val];
   },
+);
 
-  emits: ["update:modelValue", "change"],
+const selectedItems = computed(() =>
+  innerValue.value
+    .map((val) => props.options.find((o: any) => o[props.valueKey] === val))
+    .filter(Boolean),
+);
 
-  data() {
-    return {
-      open: false,
-      keyword: "",
-      innerValue: [...this.modelValue],
-    };
-  },
+const filteredOptions = computed(() => {
+  if (!keyword.value) return props.options;
+  return props.options.filter((o: any) =>
+    String(o[props.labelKey]).toLowerCase().includes(keyword.value.toLowerCase()),
+  );
+});
 
-  watch: {
-    modelValue(val) {
-      this.innerValue = [...val];
-    },
-  },
+const triggerClasses = computed(() => [
+  "flex justify-between items-center px-3 py-2 rounded cursor-pointer transition-all min-h-[42px]",
+  open.value
+    ? "border-blue-500 ring-2 ring-blue-100"
+    : "border border-gray-300 hover:border-gray-400",
+]);
 
-  computed: {
-    selectedItems() {
-      return this.innerValue
-        .map((val) => this.options.find((o) => o[this.valueKey] === val))
-        .filter(Boolean);
-    },
+function toggle() {
+  open.value = !open.value;
+}
 
-    filteredOptions() {
-      if (!this.keyword) return this.options;
+function emitChange() {
+  emit("update:modelValue", innerValue.value);
+  emit("change", innerValue.value);
+}
 
-      return this.options.filter((o) =>
-        String(o[this.labelKey])
-          .toLowerCase()
-          .includes(this.keyword.toLowerCase()),
-      );
-    },
+function clearAll() {
+  innerValue.value = [];
+  emitChange();
+  open.value = false;
+}
 
-    triggerClasses() {
-      return [
-        "flex justify-between items-center px-3 py-2 rounded cursor-pointer transition-all min-h-[42px]",
-        this.open
-          ? "border-blue-500 ring-2 ring-blue-100"
-          : "border border-gray-300 hover:border-gray-400",
-      ];
-    },
-  },
+function handleClickOutside(e: MouseEvent) {
+  if (!wrapper.value?.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
 
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside, true);
-  },
-
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleClickOutside, true);
-  },
-
-  methods: {
-    toggle() {
-      this.open = !this.open;
-    },
-
-    emitChange() {
-      this.$emit("update:modelValue", this.innerValue);
-      this.$emit("change", this.innerValue);
-    },
-
-    clearAll() {
-      this.innerValue = [];
-      this.emitChange();
-      this.open = false;
-    },
-
-    handleClickOutside(e) {
-      if (!this.$refs.wrapper.contains(e.target)) {
-        this.open = false;
-      }
-    },
-  },
-};
+onMounted(() => document.addEventListener("click", handleClickOutside, true));
+onBeforeUnmount(() =>
+  document.removeEventListener("click", handleClickOutside, true),
+);
 </script>

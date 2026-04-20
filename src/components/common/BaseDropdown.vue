@@ -1,6 +1,5 @@
-﻿<template>
+<template>
   <div class="relative inline-block" ref="root">
-    <!-- Trigger -->
     <button
       type="button"
       @click="toggle"
@@ -12,7 +11,6 @@
       <i class="fa-solid fa-chevron-down text-xs"></i>
     </button>
 
-    <!-- Menu -->
     <div
       v-if="open"
       class="absolute right-0 mt-2 w-36 bg-white border rounded shadow-lg z-50"
@@ -33,52 +31,52 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "BaseDropdown",
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
-  props: {
-    modelValue: [String, Number],
-    items: { type: Array, required: true },
-    placeholder: { type: String, default: "" },
-  },
+interface DropdownItem {
+  value: string | number;
+  label: string;
+}
 
-  emits: ["update:modelValue", "change"],
+interface Props {
+  modelValue?: string | number;
+  items: DropdownItem[];
+  placeholder?: string;
+}
 
-  data() {
-    return {
-      open: false,
-    };
-  },
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: "",
+});
 
-  computed: {
-    selectedLabel() {
-      const found = this.items.find((item) => item.value === this.modelValue);
-      return found ? found.label : "";
-    },
-  },
+const emit = defineEmits<{
+  "update:modelValue": [value: string | number];
+  change: [value: string | number];
+}>();
 
-  methods: {
-    toggle() {
-      this.open = !this.open;
-    },
-    select(item) {
-      this.$emit("update:modelValue", item.value);
-      this.$emit("change", item.value);
-      this.open = false;
-    },
-    handleClickOutside(e) {
-      if (this.$refs.root && !this.$refs.root.contains(e.target)) {
-        this.open = false;
-      }
-    },
-  },
+const root = ref<HTMLElement | null>(null);
+const open = ref(false);
 
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside);
-  },
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleClickOutside);
-  },
-};
+const selectedLabel = computed(
+  () => props.items.find((item) => item.value === props.modelValue)?.label ?? "",
+);
+
+function toggle() {
+  open.value = !open.value;
+}
+
+function select(item: DropdownItem) {
+  emit("update:modelValue", item.value);
+  emit("change", item.value);
+  open.value = false;
+}
+
+function handleClickOutside(e: MouseEvent) {
+  if (root.value && !root.value.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
+
+onMounted(() => document.addEventListener("click", handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 </script>

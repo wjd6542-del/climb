@@ -1,6 +1,5 @@
-﻿<template>
+<template>
   <div>
-    <!-- 🔎 검색 영역 -->
     <div class="bg-white border rounded-xl shadow-sm p-4 mb-4">
       <div
         class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
@@ -31,21 +30,19 @@
           </button>
         </div>
 
-        <!-- 좌측 : 키 선택 -->
         <div class="flex-1 max-w-[600px]">
           <MultiCheck
             placeholder="키를 선택하세요"
-            :items="KEYS"
+            :items="keys"
             v-model="search.keys"
             textKey="key"
             idKey="key"
-            @change="loadList"
+            @change="loadFiltered"
           />
         </div>
       </div>
     </div>
 
-    <!-- AG Grid -->
     <div class="ag-theme-alpine w-full" style="width: 100%; height: 600px">
       <AgGridVue
         class="ag-theme-alpine"
@@ -63,204 +60,87 @@
   </div>
 </template>
 
-<script>
-import api from "@/lib/api.js";
+<script setup lang="ts">
+import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import { AgGridVue } from "ag-grid-vue3";
+
+import { settingsService } from "@/api/settingsService";
+import { useAgGridCrud } from "@/composables/useAgGridCrud";
 import MultiCheck from "@/components/common/MultiCheck.vue";
 
-export default {
-  name: "settingsTable",
-  components: { AgGridVue, MultiCheck },
+const t = (k: string) =>
+  (getCurrentInstance()?.proxy as any)?.$t(k) ?? k;
 
-  data() {
-    return {
-      gridApi: null,
-      columnApi: null,
-      tempId: -1,
-      KEYS: [],
-      search: {
-        keys: [],
-      },
+const statusMap: Record<string, string> = { y: "활성", n: "비활성" };
 
-      rowData: [],
-      columnDefs: [],
+interface SettingRow {
+  id: number;
+  key: string;
+  text: string;
+  value: string;
+  is_active: "y" | "n";
+  sort: number;
+}
 
-      gridOptions: {
-        getRowId: (params) => String(params.data.id), // ⭐ 필수
-        rowSelection: {
-          mode: "multiRow",
-          checkboxes: true, // 🔥 반드시 필요
-          headerCheckbox: true,
-        },
-        onCellValueChanged: (params) => {
-          if (params.oldValue !== params.newValue) {
-            params.node.setSelected(true);
-          }
-        },
-        rowClassRules: {
-          "row-inactive": (params) => params.data?.is_active === "n",
-        },
-      },
+const keys = ref<{ key: string }[]>([]);
+const search = reactive<{ keys: string[] }>({ keys: [] });
 
-      defaultColDef: {
-        sortable: true,
-        filter: true,
-        editable: true,
-        resizable: true,
-      },
+const {
+  rowData,
+  defaultColDef,
+  gridOptions,
+  onGridReady,
+  onCellEditingStopped,
+  loadList,
+  addRow,
+  saveRows,
+  deleteRows,
+} = useAgGridCrud<SettingRow>({
+  loader: () => settingsService.list<SettingRow[]>(search),
+  saver: (rows) => settingsService.batchSave(rows),
+  deleter: (rows) => settingsService.batchDelete(rows),
+  newRowFactory: (id) => ({
+    id,
+    key: "",
+    text: "",
+    value: "",
+    is_active: "y",
+    sort: 0,
+  }),
+});
 
-      statusMap: {
-        y: "활성",
-        n: "비활성",
-      },
-    };
+const columnDefs = [
+  { headerName: t("키"), field: "key", filter: "agTextColumnFilter", flex: 0.5 },
+  { headerName: t("텍스트"), field: "text", filter: "agTextColumnFilter", flex: 0.5 },
+  { headerName: t("값"), field: "value", filter: "agTextColumnFilter", flex: 0.5 },
+  { headerName: t("정렬"), field: "sort", filter: "agNumberColumnFilter", flex: 0.5 },
+  {
+    headerName: t("활성여부"),
+    field: "is_active",
+    editable: true,
+    flex: 0.5,
+    cellEditor: "agSelectCellEditor",
+    cellEditorParams: {
+      values: ["y", "n"],
+      formatValue: (value: string) => statusMap[value],
+    },
+    filter: "agTextColumnFilter",
+    filterValueGetter: (params: any) =>
+      statusMap[params.data.is_active] ?? params.data.is_active,
+    valueFormatter: (params: any) => statusMap[params.value] ?? params.value,
   },
+];
 
-  methods: {
-    onCellEditingStopped(params) {
-      params.api.setNodesSelected({
-        nodes: [params.node],
-        newValue: true,
-        clearSelection: false,
-      });
-    },
+async function loadKeys() {
+  keys.value = await settingsService.keyGroup<{ key: string }[]>();
+}
 
-    onGridReady(params) {
-      this.gridApi = params.api;
-      this.columnApi = params.columnApi;
-      setTimeout(() => {
-        params.api.sizeColumnsToFit();
-      }, 0);
-    },
+async function loadFiltered() {
+  await loadList();
+}
 
-    /* =========================
-     * 데이터 로드
-     * ========================= */
-    async loadList() {
-      this.rowData = [];
-      const res = await api.post("/api/settings/list", this.search);
-
-      this.rowData = res.data;
-
-      // 해더  및 기능 설정
-      this.columnDefs = [
-        {
-          headerName: this.$t("키"),
-          field: "key",
-          filter: "agTextColumnFilter",
-          flex: 0.5,
-        },
-        {
-          headerName: this.$t("텍스트"),
-          field: "text",
-          filter: "agTextColumnFilter",
-          flex: 0.5,
-        },
-        {
-          headerName: this.$t("값"),
-          field: "value",
-          filter: "agTextColumnFilter",
-          flex: 0.5,
-        },
-        {
-          headerName: this.$t("정렬"),
-          field: "sort",
-          filter: "agNumberColumnFilter",
-          flex: 0.5,
-        },
-        {
-          headerName: this.$t("활성여부"),
-          field: "is_active",
-          editable: true,
-          flex: 0.5,
-          cellEditor: "agSelectCellEditor",
-          cellEditorParams: {
-            values: ["y", "n"],
-            formatValue: (value) => this.statusMap[value],
-          },
-
-          filter: "agTextColumnFilter",
-          filterValueGetter: (params) =>
-            this.statusMap[params.data.is_active] ?? params.data.is_active,
-
-          valueFormatter: (params) =>
-            this.statusMap[params.value] ?? params.value,
-        },
-      ];
-    },
-
-    /* =========================
-     * 행 추가
-     * ========================= */
-    addRow() {
-      const newRow = {
-        id: this.tempId--,
-        key: "",
-        text: "",
-        value: "",
-        is_active: "y",
-        sort: 0,
-      };
-
-      const res = this.gridApi.applyTransaction({ add: [newRow], addIndex: 0 });
-      res.add[0].setSelected(true);
-    },
-
-    /* =========================
-     * 저장
-     * ========================= */
-    async saveRows() {
-      const rows = this.gridApi.getSelectedRows();
-      try {
-        if (rows.length === 0) {
-          this.$toast.error("선택된 정보가 없습니다");
-          return;
-        }
-
-        await api.post("/api/settings/batchSave", rows);
-        this.$toast.success("저장 완료");
-        this.loadList();
-      } catch (e) {
-        console.error(e);
-        this.$toast.error("저장 실패");
-      }
-    },
-
-    // 일괄 삭제 처리
-    async deleteRows() {
-      const rows = this.gridApi.getSelectedRows();
-
-      if (rows.length === 0) {
-        this.$toast.error("선택된 정보가 없습니다");
-        return;
-      }
-
-      const ok = await this.$confirm(
-        `선택된 ${rows.length}개 항목을 삭제하시겠습니까?`,
-        "삭제 확인",
-      );
-
-      if (!ok) return;
-
-      try {
-        await api.post("/api/settings/batchDelete", rows);
-        this.$toast.success("삭제 완료");
-        this.loadList();
-      } catch (e) {
-        this.$toast.error("삭제 중 오류가 발생했습니다");
-      }
-    },
-
-    // 키리스트 출력
-    async loadKeyList() {
-      const res = await api.post("/api/settings/keyGroup");
-      this.KEYS = res.data;
-    },
-  },
-
-  mounted() {
-    this.loadList();
-    this.loadKeyList();
-  },
-};
+onMounted(async () => {
+  await loadList();
+  await loadKeys();
+});
 </script>

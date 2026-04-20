@@ -1,16 +1,21 @@
-﻿import { defineStore } from "pinia";
+import { defineStore } from "pinia";
+import type { BookmarkItem } from "@/types";
+
+interface BookmarkState {
+  gyms: BookmarkItem[];
+  panelOpen: boolean;
+}
 
 export const useBookmarkStore = defineStore("bookmark", {
-  state: () => ({
+  state: (): BookmarkState => ({
     gyms: JSON.parse(localStorage.getItem("gymBookmarks") || "[]"),
-    panelOpen: false, // 🔥 패널 상태
+    panelOpen: false,
   }),
 
   getters: {
     count: (state) => state.gyms.length,
-
-    isBookmarked: (state) => (id) => state.gyms.some((gym) => gym.id === id),
-
+    isBookmarked: (state) => (key: string) =>
+      state.gyms.some((gym) => gym.key === key),
     list: (state) => state.gyms,
   },
 
@@ -19,19 +24,19 @@ export const useBookmarkStore = defineStore("bookmark", {
       localStorage.setItem("gymBookmarks", JSON.stringify(this.gyms));
     },
 
-    add(gym) {
+    add(gym: BookmarkItem) {
       if (!this.gyms.some((v) => v.key === gym.key)) {
         this.gyms.push(gym);
         this.save();
       }
     },
 
-    remove(key) {
+    remove(key: string) {
       this.gyms = this.gyms.filter((v) => v.key !== key);
       this.save();
     },
 
-    toggle(gym) {
+    toggle(gym: BookmarkItem) {
       if (this.isBookmarked(gym.key)) {
         this.remove(gym.key);
       } else {
@@ -44,7 +49,6 @@ export const useBookmarkStore = defineStore("bookmark", {
       this.save();
     },
 
-    // 🔥 패널 제어
     openPanel() {
       this.panelOpen = true;
       document.body.style.overflow = "hidden";
@@ -56,7 +60,8 @@ export const useBookmarkStore = defineStore("bookmark", {
     },
 
     togglePanel() {
-      this.panelOpen ? this.closePanel() : this.openPanel();
+      if (this.panelOpen) this.closePanel();
+      else this.openPanel();
     },
   },
 });

@@ -1,6 +1,5 @@
-﻿<template>
-  <div class="relative w-full flex items-start gap-1">
-    <!-- 🔥 빠른 버튼 영역 (밖으로 분리) -->
+<template>
+  <div class="relative w-full flex items-start gap-1" ref="root">
     <div v-if="showQuickButtons" class="relative">
       <button
         @click.stop="toggleQuick"
@@ -36,7 +35,6 @@
       </div>
     </div>
 
-    <!-- 🔥 날짜 인풋 그룹 -->
     <div class="relative flex-1">
       <div class="flex h-[40px] border rounded-lg overflow-hidden bg-white">
         <input
@@ -47,7 +45,6 @@
           class="flex-1 px-3 py-2 text-sm outline-none cursor-pointer"
         />
 
-        <!-- 초기화 버튼 -->
         <button
           v-if="innerValue.start || innerValue.end"
           @click.stop="clearRange"
@@ -64,7 +61,6 @@
         </button>
       </div>
 
-      <!-- 🔥 달력 드롭다운 -->
       <div
         v-show="openCalendar"
         class="absolute left-0 mt-2 z-50 bg-white border rounded-lg shadow-lg"
@@ -81,163 +77,131 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { DatePicker } from "v-calendar";
 
-export default {
-  name: "DateRangePicker",
+interface DateRange {
+  start: Date | null;
+  end: Date | null;
+}
 
-  components: { DatePicker },
+interface Props {
+  modelValue?: DateRange;
+  placeholder?: string;
+  minuteStep?: number;
+  showQuickButtons?: boolean;
+}
 
-  props: {
-    modelValue: {
-      type: Object,
-      default: () => ({
-        start: null,
-        end: null,
-      }),
-    },
-    placeholder: {
-      type: String,
-      default: "기간 선택",
-    },
-    minuteStep: {
-      type: Number,
-      default: 10,
-    },
-    showQuickButtons: {
-      type: Boolean,
-      default: false,
-    },
-    change: {
-      type: Function,
-    },
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => ({ start: null, end: null }),
+  placeholder: "기간 선택",
+  minuteStep: 10,
+  showQuickButtons: false,
+});
+
+const emit = defineEmits<{
+  "update:modelValue": [value: DateRange];
+  change: [];
+}>();
+
+const root = ref<HTMLElement | null>(null);
+const openCalendar = ref(false);
+const openQuick = ref(false);
+const innerValue = reactive<{ start: Date | undefined; end: Date | undefined }>({
+  start: undefined,
+  end: undefined,
+});
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!val) {
+      innerValue.start = undefined;
+      innerValue.end = undefined;
+      return;
+    }
+    innerValue.start = val.start ?? undefined;
+    innerValue.end = val.end ?? undefined;
   },
+  { immediate: true, deep: true },
+);
 
-  emits: ["update:modelValue", "change"],
+const formattedRange = computed(() => {
+  if (!innerValue.start || !innerValue.end) return "";
 
-  data() {
-    return {
-      openCalendar: false,
-      openQuick: false,
-      innerValue: {
-        start: undefined as Date | undefined,
-        end: undefined as Date | undefined,
-      },
-    };
-  },
+  const format = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  };
 
-  watch: {
-    modelValue: {
-      immediate: true,
-      deep: true,
-      handler(val) {
-        if (!val) {
-          this.innerValue.start = undefined;
-          this.innerValue.end = undefined;
-          return;
-        }
+  return `${format(innerValue.start)} ~ ${format(innerValue.end)}`;
+});
 
-        this.innerValue.start = val.start || undefined;
-        this.innerValue.end = val.end || undefined;
-      },
-    },
-  },
+function clearRange() {
+  innerValue.start = undefined;
+  innerValue.end = undefined;
+  emit("update:modelValue", { start: null, end: null });
+  emit("change");
+  openCalendar.value = false;
+  openQuick.value = false;
+}
 
-  computed: {
-    formattedRange(): string {
-      if (!this.innerValue?.start || !this.innerValue?.end) return "";
+function toggleCalendar() {
+  openCalendar.value = !openCalendar.value;
+  openQuick.value = false;
+}
 
-      const format = (d: Date) => {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const hh = String(d.getHours()).padStart(2, "0");
-        const min = String(d.getMinutes()).padStart(2, "0");
+function toggleQuick() {
+  openQuick.value = !openQuick.value;
+  openCalendar.value = false;
+}
 
-        return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
-      };
+function handleSelect(val: any) {
+  innerValue.start = val?.start;
+  innerValue.end = val?.end;
+  emit("update:modelValue", { start: val?.start ?? null, end: val?.end ?? null });
+  emit("change");
+}
 
-      return `${format(this.innerValue.start)} ~ ${format(this.innerValue.end)}`;
-    },
-  },
+function setQuick(type: "today" | "yesterday" | "week") {
+  const now = new Date();
+  let start = new Date(now);
+  let end = new Date(now);
 
-  mounted() {
-    document.addEventListener("click", this.handleOutside, true);
-  },
+  if (type === "today") {
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+  } else if (type === "yesterday") {
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+    end = new Date(start);
+    end.setHours(23, 59, 59, 999);
+  } else if (type === "week") {
+    start.setDate(start.getDate() - 7);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+  }
 
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleOutside, true);
-  },
+  innerValue.start = start;
+  innerValue.end = end;
+  emit("update:modelValue", { start, end });
+  emit("change");
+  openQuick.value = false;
+  openCalendar.value = false;
+}
 
-  methods: {
-    clearRange() {
-      this.innerValue.start = undefined;
-      this.innerValue.end = undefined;
+function handleOutside(event: MouseEvent) {
+  if (!root.value?.contains(event.target as Node)) {
+    openCalendar.value = false;
+    openQuick.value = false;
+  }
+}
 
-      this.$emit("update:modelValue", {
-        start: undefined,
-        end: undefined,
-      });
-
-      this.$emit("change");
-      this.openCalendar = false;
-      this.openQuick = false;
-    },
-
-    toggleCalendar() {
-      this.openCalendar = !this.openCalendar;
-      this.openQuick = false;
-    },
-
-    toggleQuick() {
-      this.openQuick = !this.openQuick;
-      this.openCalendar = false;
-    },
-
-    handleSelect(val: any) {
-      this.innerValue = val;
-      this.$emit("update:modelValue", val);
-      this.$emit("change");
-    },
-
-    setQuick(type: string) {
-      const now = new Date();
-      let start = new Date(now);
-      let end = new Date(now);
-
-      if (type === "today") {
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
-      }
-
-      if (type === "yesterday") {
-        start.setDate(start.getDate() - 1);
-        start.setHours(0, 0, 0, 0);
-        end = new Date(start);
-        end.setHours(23, 59, 59, 999);
-      }
-
-      if (type === "week") {
-        start.setDate(start.getDate() - 7);
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
-      }
-
-      this.innerValue = { start, end };
-      this.$emit("update:modelValue", this.innerValue);
-
-      this.$emit("change");
-      this.openQuick = false;
-      this.openCalendar = false;
-    },
-
-    handleOutside(event: any) {
-      if (!this.$el.contains(event.target)) {
-        this.openCalendar = false;
-        this.openQuick = false;
-      }
-    },
-  },
-};
+onMounted(() => document.addEventListener("click", handleOutside, true));
+onBeforeUnmount(() => document.removeEventListener("click", handleOutside, true));
 </script>

@@ -1,10 +1,9 @@
-﻿<template>
+<template>
   <transition name="fade">
     <div
       v-if="modelValue"
       class="fixed inset-0 z-[9999] flex items-center justify-center"
     >
-      <!-- overlay -->
       <div class="absolute inset-0 bg-black/50" @click="handleOverlayClick" />
 
       <div
@@ -14,7 +13,6 @@
         :style="modalStyle"
         @click.stop
       >
-        <!-- header (drag handle) -->
         <div
           v-if="$slots.header || title"
           class="flex items-center justify-between px-5 py-4 border-b select-none"
@@ -36,12 +34,10 @@
           </button>
         </div>
 
-        <!-- body -->
         <div class="px-5 py-4 max-h-[70vh] overflow-y-auto">
           <slot />
         </div>
 
-        <!-- footer -->
         <div
           v-if="$slots.footer"
           class="px-5 py-4 border-t bg-gray-50 rounded-b-xl"
@@ -53,124 +49,105 @@
   </transition>
 </template>
 
-<script>
-export default {
-  name: "BaseModal",
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref } from "vue";
 
-  props: {
-    modelValue: Boolean,
-    title: String,
-    width: {
-      type: String,
-      default: "md", // sm | md | lg | xl | full
-    },
-    closeOnOverlay: {
-      type: Boolean,
-      default: true,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-    draggable: {
-      type: Boolean,
-      default: false,
-    },
-  },
+interface Props {
+  modelValue: boolean;
+  title?: string;
+  width?: "sm" | "md" | "lg" | "xl" | "full";
+  closeOnOverlay?: boolean;
+  showClose?: boolean;
+  draggable?: boolean;
+}
 
-  data() {
-    return {
-      offsetX: 0,
-      offsetY: 0,
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-    };
-  },
+const props = withDefaults(defineProps<Props>(), {
+  title: "",
+  width: "md",
+  closeOnOverlay: true,
+  showClose: true,
+  draggable: false,
+});
 
-  computed: {
-    widthClass() {
-      switch (this.width) {
-        case "sm":
-          return "max-w-sm";
-        case "md":
-          return "max-w-md";
-        case "lg":
-          return "max-w-3xl";
-        case "xl":
-          return "max-w-5xl";
-        case "full":
-          return "max-w-[95vw]";
-        default:
-          return "max-w-xl";
-      }
-    },
+const emit = defineEmits<{
+  "update:modelValue": [value: boolean];
+  close: [];
+}>();
 
-    modalStyle() {
-      if (!this.draggable) return {};
-      return {
-        transform: `translate(${this.offsetX}px, ${this.offsetY}px)`,
-      };
-    },
-  },
+const modal = ref<HTMLElement | null>(null);
+const offsetX = ref(0);
+const offsetY = ref(0);
+const isDragging = ref(false);
+const startX = ref(0);
+const startY = ref(0);
 
-  methods: {
-    close() {
-      this.$emit("update:modelValue", false);
-      this.$emit("close");
-    },
+const widthClass = computed(() => {
+  switch (props.width) {
+    case "sm":
+      return "max-w-sm";
+    case "md":
+      return "max-w-md";
+    case "lg":
+      return "max-w-3xl";
+    case "xl":
+      return "max-w-5xl";
+    case "full":
+      return "max-w-[95vw]";
+    default:
+      return "max-w-xl";
+  }
+});
 
-    handleOverlayClick() {
-      if (this.closeOnOverlay) {
-        this.close();
-      }
-    },
+const modalStyle = computed(() => {
+  if (!props.draggable) return {};
+  return { transform: `translate(${offsetX.value}px, ${offsetY.value}px)` };
+});
 
-    /* =========================
-       🔥 Drag Logic
-    ========================= */
+function close() {
+  emit("update:modelValue", false);
+  emit("close");
+}
 
-    startDrag(e) {
-      if (!this.draggable) return;
+function handleOverlayClick() {
+  if (props.closeOnOverlay) close();
+}
 
-      this.isDragging = true;
-      this.startX = e.clientX - this.offsetX;
-      this.startY = e.clientY - this.offsetY;
+function startDrag(e: MouseEvent) {
+  if (!props.draggable) return;
 
-      document.addEventListener("mousemove", this.onDrag);
-      document.addEventListener("mouseup", this.stopDrag);
-    },
+  isDragging.value = true;
+  startX.value = e.clientX - offsetX.value;
+  startY.value = e.clientY - offsetY.value;
 
-    onDrag(e) {
-      if (!this.isDragging) return;
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("mouseup", stopDrag);
+}
 
-      const modal = this.$refs.modal;
-      if (!modal) return;
+function onDrag(e: MouseEvent) {
+  if (!isDragging.value || !modal.value) return;
 
-      let newX = e.clientX - this.startX;
-      let newY = e.clientY - this.startY;
+  let newX = e.clientX - startX.value;
+  let newY = e.clientY - startY.value;
 
-      const rect = modal.getBoundingClientRect();
-      const maxX = window.innerWidth - rect.width;
-      const maxY = window.innerHeight - rect.height;
+  const rect = modal.value.getBoundingClientRect();
+  const maxX = window.innerWidth - rect.width;
+  const maxY = window.innerHeight - rect.height;
 
-      newX = Math.max(-rect.left, Math.min(newX, maxX - rect.left));
-      newY = Math.max(-rect.top, Math.min(newY, maxY - rect.top));
+  newX = Math.max(-rect.left, Math.min(newX, maxX - rect.left));
+  newY = Math.max(-rect.top, Math.min(newY, maxY - rect.top));
 
-      this.offsetX = newX;
-      this.offsetY = newY;
-    },
+  offsetX.value = newX;
+  offsetY.value = newY;
+}
 
-    stopDrag() {
-      this.isDragging = false;
-      document.removeEventListener("mousemove", this.onDrag);
-      document.removeEventListener("mouseup", this.stopDrag);
-    },
-  },
+function stopDrag() {
+  isDragging.value = false;
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+}
 
-  beforeUnmount() {
-    document.removeEventListener("mousemove", this.onDrag);
-    document.removeEventListener("mouseup", this.stopDrag);
-  },
-};
+onBeforeUnmount(() => {
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+});
 </script>

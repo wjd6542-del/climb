@@ -1,5 +1,6 @@
-﻿import axios from "axios";
-const api = axios.create({
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+
+const api: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   headers: {
@@ -16,12 +17,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 응답 인터셉터 (공통 에러)
 api.interceptors.response.use(
-  (res) => res,
+  (res: AxiosResponse) => res,
   (err) => {
     console.error("API ERROR", err.response || err);
-    return Promise.reject(err.response.data);
+    return Promise.reject(err.response?.data ?? err);
   },
 );
 

@@ -6,7 +6,7 @@
         <h1 class="text-xl font-bold"></h1>
         <button
           class="px-3 py-1.5 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
-          @click="initForm"
+          @click="openCreate"
         >
           <i class="fa-solid fa-plus"></i> 장소등록
         </button>
@@ -17,43 +17,40 @@
         <div>
           <SearchSelect
             v-model="search.sido"
-            :options="SIDO"
+            :options="sidoList"
             labelKey="sido"
             valueKey="sido"
             placeholder="시도를 선택하세요"
             class="bg-white border border-gray-200 rounded-lg h-[40px]"
-            @change="search_list"
+            @change="reset"
           />
         </div>
 
-        <!-- 검색어 -->
         <div>
           <input
             v-model="search.keyword"
             class="w-full border rounded px-3 py-2 text-sm min-h-[42px]"
             placeholder="장소명 / 주소"
-            @change="search_list"
+            @change="reset"
           />
         </div>
 
-        <!-- 클라이밍 구분 -->
         <MultiCheck
           placeholder="구분을 선택하세요"
           label=""
-          :items="GYM_TYPES"
+          :items="gymTypes"
           v-model="search.types"
           textKey="name"
-          @change="search_list"
+          @change="reset"
         />
 
-        <!-- 편의시설 -->
         <MultiCheck
           placeholder="편의시설을 선택하세요"
           label=""
-          :items="AMENITIES"
+          :items="amenities"
           v-model="search.amenities"
           textKey="text"
-          @change="search_list"
+          @change="reset"
         />
 
         <div>
@@ -66,25 +63,20 @@
         </div>
       </div>
 
-      <!-- 🔥 InfiniteScroll 적용 -->
-      <InfiniteScroll
-        :loading="isLoading"
-        :hasMore="hasMore"
-        @load-more="loadMore"
-      >
+      <InfiniteScroll :loading="isLoading" :hasMore="hasMore" @load-more="loadMore">
         <GymList
-          :gyms="GYMS"
+          :gyms="list"
           :changeFlg="true"
           :mainFlg="true"
           :deleteHandler="deleteGym"
           :bookmarkHandler="onBookmark"
-          :changeHandler="saveForm"
+          :changeHandler="openEdit"
           :detailHandler="onDetail"
         />
       </InfiniteScroll>
     </div>
 
-    <!-- 등록 모달 -->
+    <!-- 등록/수정 모달 -->
     <BaseModal
       v-model="openModal"
       :title="'지도 확인'"
@@ -97,7 +89,6 @@
         </h2>
       </template>
       <div class="space-y-4 text-sm">
-        <!-- 짐 이름 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">짐 이름</label>
           <input
@@ -107,7 +98,6 @@
           />
         </div>
 
-        <!-- 주소 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">주소</label>
           <input
@@ -122,7 +112,7 @@
             <i class="fa-solid fa-magnifying-glass"></i>주소검색
           </button>
         </div>
-        <!-- 상세주소 -->
+
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">상세주소</label>
           <input
@@ -132,12 +122,11 @@
           />
         </div>
 
-        <!-- 짐 타입 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
           <label class="text-sm font-medium leading-8">타입</label>
           <div class="flex flex-wrap gap-2">
             <Toggle
-              v-for="t in GYM_TYPES"
+              v-for="t in gymTypes"
               :key="t.id"
               :label="t.name"
               v-model="form.types"
@@ -146,23 +135,19 @@
           </div>
         </div>
 
-        <!-- 편의시설 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
           <label class="text-sm font-medium leading-8">편의시설</label>
-          <div>
-            <div class="flex flex-wrap gap-2">
-              <Toggle
-                v-for="a in AMENITIES"
-                :key="a.id"
-                :label="a.text"
-                v-model="form.amenities"
-                :value="a.id"
-              />
-            </div>
+          <div class="flex flex-wrap gap-2">
+            <Toggle
+              v-for="a in amenities"
+              :key="a.id"
+              :label="a.text"
+              v-model="form.amenities"
+              :value="a.id"
+            />
           </div>
         </div>
 
-        <!-- 색상순서 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
           <label class="text-sm font-medium leading-8"
             >색상 순서
@@ -171,20 +156,17 @@
               v-tooltip="'볼더링/지구력 난이도 순서별 색상 설정'"
             ></i
           ></label>
-          <div>
-            <div class="flex flex-wrap gap-2">
-              <MultiColorSelect
-                v-model="form.gymBoulderColors"
-                :options="COLOR"
-                labelKey="name"
-                valueKey="id"
-                colorKey="code"
-              />
-            </div>
+          <div class="flex flex-wrap gap-2">
+            <MultiColorSelect
+              v-model="form.gymBoulderColors"
+              :options="boulderColors"
+              labelKey="name"
+              valueKey="id"
+              colorKey="code"
+            />
           </div>
         </div>
 
-        <!-- 난이도 종류 -->
         <div class="grid grid-cols-[112px_1fr] gap-4 items-start">
           <label class="text-sm font-medium leading-8"
             >난이도 종류
@@ -193,20 +175,17 @@
               v-tooltip="'볼더링/지구력 난이도 종류 설정'"
             ></i
           ></label>
-          <div>
-            <div class="flex flex-wrap gap-2">
-              <MultiCheck
-                placeholder="구분을 선택하세요"
-                label=""
-                :items="DIFFICULTYS"
-                v-model="form.gymDifficulties"
-                textKey="name"
-              />
-            </div>
+          <div class="flex flex-wrap gap-2">
+            <MultiCheck
+              placeholder="구분을 선택하세요"
+              label=""
+              :items="difficulties"
+              v-model="form.gymDifficulties"
+              textKey="name"
+            />
           </div>
         </div>
 
-        <!-- 운영시간 -->
         <div class="flex items-start gap-4">
           <label class="w-28 text-sm font-medium mt-1">운영시간</label>
           <div class="flex-1 space-y-1 text-sm">
@@ -216,7 +195,6 @@
           </div>
         </div>
 
-        <!-- 활성 여부 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">운영 여부</label>
           <button
@@ -232,7 +210,6 @@
               "
             />
           </button>
-
           <span class="text-sm text-gray-600">
             {{ form.is_active === "y" ? "운영중" : "운영중지" }}
           </span>
@@ -269,40 +246,34 @@
         </h2>
       </template>
 
-      <!-- 내용 영역 -->
       <div class="space-y-4 text-sm">
-        <!-- 장소명 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">장소명</label>
           <input
-            v-model="default_d_form.name"
+            v-model="detailForm.name"
             class="flex-1 border rounded px-3 py-2 text-sm"
-            placeholder=""
-            disabled="true"
+            disabled
           />
         </div>
 
-        <!-- 내용 -->
         <div class="flex items-start gap-4">
           <label class="w-28 text-sm font-medium mt-2">정보</label>
           <div class="flex-1">
-            <Editor v-model="default_d_form.description" />
+            <Editor v-model="detailForm.description" />
           </div>
         </div>
 
-        <!-- 일일이용권 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">일일 이용금액</label>
           <div class="flex-1">
             <input
               type="number"
-              v-model="default_d_form.day_pass_price"
+              v-model="detailForm.day_pass_price"
               class="w-full border rounded px-3 py-2 text-sm"
             />
           </div>
         </div>
 
-        <!-- 파일 업로드 -->
         <div class="flex items-center gap-4">
           <label class="w-28 text-sm font-medium">이미지</label>
           <div class="flex-1">
@@ -310,7 +281,6 @@
           </div>
         </div>
 
-        <!-- 기존 이미지 -->
         <div
           v-if="isDetailEdit && existingImages.length"
           class="grid grid-cols-3 gap-3"
@@ -329,7 +299,6 @@
           </div>
         </div>
 
-        <!-- 신규 이미지 -->
         <div class="grid grid-cols-3 gap-3">
           <div v-for="(img, i) in newPreviews" :key="i" class="relative">
             <img :src="img" class="w-full h-28 object-cover rounded" />
@@ -369,15 +338,29 @@
         </h2>
       </template>
       <div class="space-y-4">
-        <KakaoMap :markers="GYM_MAP" class="h-[800px] rounded-2xl shadow-xl" />
+        <KakaoMap :markers="gymMap" class="h-[800px] rounded-2xl shadow-xl" />
       </div>
     </BaseModal>
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { onMounted, reactive, ref } from "vue";
+import { useToast } from "vue-toastification";
+
+import { gymService } from "@/api/gymService";
+import { gymDetailService } from "@/api/gymDetailService";
+import { gymTypeService } from "@/api/gymTypeService";
+import { amenitiesService } from "@/api/amenitiesService";
+import { boulderColorService } from "@/api/boulderColorService";
+import { difficultyService } from "@/api/difficultyService";
+
+import { useListPage } from "@/composables/useListPage";
+import { useImageUpload } from "@/composables/useImageUpload";
+import { useKakaoPostcode } from "@/composables/useKakaoPostcode";
 import { useBookmarkStore } from "@/stores/bookmarkStore";
-import api from "@/lib/api.js";
+import { alertStore } from "@/plugins/alert.store";
+
 import TimeRow from "@/components/common/TimeRow.vue";
 import GymList from "@/components/gym/GymList.vue";
 import MultiCheck from "@/components/common/MultiCheck.vue";
@@ -389,471 +372,298 @@ import MultiColorSelect from "@/components/common/MultiColorSelect.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
 import InfiniteScroll from "@/components/common/InfiniteScroll.vue";
 
-export default {
-  name: "GymPage",
+import type {
+  Amenity,
+  BoulderColor,
+  Difficulty,
+  Gym,
+  GymDetail,
+  GymDetailForm,
+  GymForm,
+  GymType,
+  HoursMap,
+  SidoGroupItem,
+} from "@/types";
 
-  setup() {
-    const bookmarkStore = useBookmarkStore();
-    return { bookmarkStore };
-  },
+const toast = useToast();
+const bookmarkStore = useBookmarkStore();
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
-  components: {
-    TimeRow,
-    GymList,
-    MultiCheck,
-    KakaoMap,
-    Editor,
-    SearchSelect,
-    BaseModal,
-    BaseImage,
-    MultiColorSelect,
-    InfiniteScroll,
-  },
+const amenities = ref<Amenity[]>([]);
+const gymTypes = ref<GymType[]>([]);
+const sidoList = ref<SidoGroupItem[]>([]);
+const gymMap = ref<Gym[]>([]);
+const boulderColors = ref<BoulderColor[]>([]);
+const difficulties = ref<Difficulty[]>([]);
 
-  data() {
-    return {
-      AMENITIES: [],
-      GYM_TYPES: [],
-      GYMS: [],
-      SIDO: [],
-      GYM_MAP: [],
-      COLOR: [],
-      DIFFICULTYS: [],
-      geocoder: null,
+const openModal = ref(false);
+const openMapModal = ref(false);
+const openDetailModal = ref(false);
 
-      openModal: false,
-      openMapModal: false,
-      openDetailModal: false,
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
-      isEdit: false,
-      editId: null,
+const isDetailEdit = ref(false);
+const detailId = ref<number | null>(null);
 
-      isDetailEdit: false,
-      detailId: null,
+const search = reactive<{
+  is_active: string;
+  keyword: string;
+  sido: string;
+  types: number[];
+  amenities: number[];
+}>({
+  is_active: "",
+  keyword: "",
+  sido: "",
+  types: [],
+  amenities: [],
+});
 
-      search: {
-        is_active: "",
-        keyword: "",
-        sido: "",
-        types: [],
-        amenities: [],
-      },
+function createEmptyHours(): HoursMap {
+  const entry = { open_time: "10:00", close_time: "22:00", is_closed: false };
+  return {
+    weekday: { ...entry },
+    weekend: { ...entry },
+    holiday: { ...entry },
+  };
+}
 
-      /* =======================
-         무한스크롤 상태
-      ======================= */
-      page: 1,
-      limit: 20,
-      isLoading: false,
-      hasMore: true,
+function createEmptyForm(): GymForm {
+  return {
+    name: "",
+    address: "",
+    address_detail: "",
+    types: [],
+    amenities: [],
+    gymBoulderColors: [],
+    gymDifficulties: [],
+    hours: createEmptyHours(),
+    is_active: "y",
+    lat: 0,
+    lon: 0,
+    post: "",
+    sido: "",
+  };
+}
 
-      form: {} as any,
-      detail_form: {} as any,
+function createEmptyDetailForm(): GymDetailForm {
+  return { gym_id: 0, name: "", description: "", day_pass_price: 0 };
+}
 
-      default_d_form: {
-        name: "",
-        gym_id: 0,
-        description: "",
-        day_pass_price: 0,
-      },
+const form = reactive<GymForm>(createEmptyForm());
+const detailForm = reactive<GymDetailForm>(createEmptyDetailForm());
 
-      existingImages: [] as any[],
-      deleteImageIds: [] as number[],
-      newFiles: [] as File[],
-      newPreviews: [] as string[],
+const {
+  existingImages,
+  newFiles,
+  newPreviews,
+  deleteImageIds,
+  handleFiles,
+  removeNewImage,
+  removeExistingImage,
+  setExistingImages,
+  resetUpload,
+  appendFilesToFormData,
+} = useImageUpload({ useFileReader: false });
 
-      apiUrl: import.meta.env.VITE_API_URL,
-    };
-  },
+const postcode = useKakaoPostcode();
 
-  created() {
-    this.form = this.getDefaultForm();
-  },
+const { list, isLoading, hasMore, load, loadMore, reset } = useListPage<
+  Gym,
+  {
+    is_active: string;
+    keyword: string;
+    sido: string;
+    types: number[];
+    amenities: number[];
+  }
+>({
+  fetcher: (params) => gymService.pageList<Gym[]>(params),
+  buildParams: () => ({ ...search }),
+});
 
-  methods: {
-    /* 🔥 InfiniteScroll loadMore 추가 */
-    loadMore() {
-      if (this.isLoading || !this.hasMore) return;
+function toggleActive() {
+  form.is_active = form.is_active === "y" ? "n" : "y";
+}
 
-      // 🔥 최초 로드 직후 자동 트리거 방지
-      if (this.page === 1 && this.GYMS.length < this.limit) {
-        return;
-      }
+function resetForm() {
+  Object.assign(form, createEmptyForm());
+}
 
-      this.page++;
-      this.loadList(true);
-    },
+function openCreate() {
+  isEdit.value = false;
+  editId.value = null;
+  resetForm();
+  openModal.value = true;
+}
 
-    toggleActive() {
-      this.form.is_active = this.form.is_active === "y" ? "n" : "y";
-    },
+function openEdit(data: Gym) {
+  resetForm();
 
-    removeNewImage(index: number) {
-      this.newFiles.splice(index, 1);
-      this.newPreviews.splice(index, 1);
-    },
-    removeExistingImage(img: any) {
-      this.deleteImageIds.push(img.id);
-      this.existingImages = this.existingImages.filter((i) => i.id !== img.id);
-    },
-    handleFiles(e: Event) {
-      const files = (e.target as HTMLInputElement).files;
-      if (!files) return;
+  const hours = createEmptyHours();
+  hours.weekday.open_time = "";
+  hours.weekday.close_time = "";
+  hours.weekend.open_time = "";
+  hours.weekend.close_time = "";
+  hours.holiday.open_time = "";
+  hours.holiday.close_time = "";
 
-      for (let file of Array.from(files)) {
-        this.newFiles.push(file);
-        this.newPreviews.push(URL.createObjectURL(file));
-      }
-    },
+  data.operating_hours?.forEach((h) => {
+    const target = hours[h.type];
+    if (target) {
+      target.open_time = h.open_time;
+      target.close_time = h.close_time;
+      target.is_closed = h.is_closed ?? false;
+    }
+  });
 
-    // 상세정보 초기화
-    inintDetailForm() {
-      this.default_d_form = {
-        gym_id: 0,
-        name: "",
-        description: "",
-        day_pass_price: 0,
-      };
-      this.detailId = null;
-      this.isDetailEdit = false;
-      this.existingImages = [];
-      this.newFiles = [];
-      this.newPreviews = [];
-      this.openDetailModal = true;
-    },
+  form.name = data.name || "";
+  form.address = data.address || "";
+  form.address_detail = data.address_detail || "";
+  form.types = data.gymTypeMap?.map((t) => t.type_id) || [];
+  form.amenities = data.gymAmenityMaps?.map((a) => a.amenity_id) || [];
+  form.gymBoulderColors =
+    data.gymBoulderColors?.map((c) => c.boulder_color_id) || [];
+  form.gymDifficulties =
+    data.gymDifficulties?.map((d) => d.difficulty_id) || [];
+  form.hours = hours;
+  form.is_active = data.is_active || "y";
+  form.lat = data.lat || 0;
+  form.lon = data.lon || 0;
+  form.post = data.post || "";
+  form.sido = data.sido || "";
 
-    // 상세정보 출력
-    async onDetail(data: any) {
-      this.inintDetailForm();
+  editId.value = data.id;
+  isEdit.value = true;
+  openModal.value = true;
+}
 
-      const res = await api.post("/api/gymDetail/getGym", {
-        gym_id: data.id,
-      });
-
-      if (res.data) {
-        this.isDetailEdit = true;
-        this.detailId = res.data.id;
-        this.default_d_form = {
-          name: res.data.name,
-          gym_id: res.data.id,
-          description: res.data.description || "",
-          day_pass_price: res.data.day_pass_price || 0,
-        };
-        this.existingImages = res.data.images || [];
-      }
-
-      this.default_d_form.name = data.name;
-      this.default_d_form.gym_id = data.id;
-      this.openDetailModal = true;
-    },
-
-    // 상세정보 저장
-    async saveDetail() {
-      try {
-        const formData = new FormData();
-        formData.append("gym_id", this.default_d_form.gym_id);
-        formData.append("description", this.default_d_form.description);
-        formData.append("day_pass_price", this.default_d_form.day_pass_price);
-        formData.append("deleteImageIds", JSON.stringify(this.deleteImageIds));
-        // 신규 파일
-        this.newFiles.forEach((file) => {
-          formData.append("images", file);
-        });
-
-        if (this.isDetailEdit) {
-          formData.append("id", this.detailId);
-          await api.post("/api/gymDetail/update", formData);
-        } else {
-          await api.post("/api/gymDetail/save", formData);
-        }
-
-        this.$toast.success("저장 완료");
-        this.openDetailModal = false;
-      } catch (e) {
-        this.$toast.error("저장 실패");
+function searchAddress() {
+  postcode.open({
+    onAddress: (data, coords) => {
+      form.address = data.address;
+      form.post = data.zonecode;
+      form.sido = data.sido;
+      if (coords) {
+        form.lat = coords.lat;
+        form.lon = coords.lon;
       }
     },
+  });
+}
 
-    // 주소 검색
-    searchAddress() {
-      new window.kakao.Postcode({
-        oncomplete: (data: any) => {
-          // 주소 문자열
-          const fullAddress = data.address;
-          const sido = data.sido;
-          const zonecode = data.zonecode;
+async function saveLocation() {
+  try {
+    const payload: Record<string, unknown> = { ...form };
+    if (isEdit.value && editId.value) {
+      payload.id = editId.value;
+      await gymService.update(payload);
+    } else {
+      await gymService.save(payload);
+    }
 
-          this.form.address = fullAddress;
-          this.form.post = zonecode;
-          this.form.sido = sido;
+    toast.success("저장되었습니다");
+    openModal.value = false;
+    reset();
+  } catch (e) {
+    toast.error("저장 실패");
+  }
+}
 
-          // 지오코딩 → 좌표 변환
-          if (this.geocoder) {
-            this.geocoder.addressSearch(
-              fullAddress,
-              (result: any, status: any) => {
-                if (status === window.kakao.maps.services.Status.OK) {
-                  this.form.lat = parseFloat(result[0].y);
-                  this.form.lon = parseFloat(result[0].x);
-                }
-              },
-            );
-          }
-        },
-      }).open();
-    },
+function resetDetailForm() {
+  Object.assign(detailForm, createEmptyDetailForm());
+  detailId.value = null;
+  isDetailEdit.value = false;
+  resetUpload();
+}
 
-    // 저장 처리
-    async saveForm(data: any) {
-      this.form = this.getDefaultForm();
+async function onDetail(data: Gym) {
+  resetDetailForm();
+  openDetailModal.value = true;
 
-      const hoursMap = {
-        weekday: { open_time: "", close_time: "", is_closed: false },
-        weekend: { open_time: "", close_time: "", is_closed: false },
-        holiday: { open_time: "", close_time: "", is_closed: false },
-      };
+  const res = await gymDetailService.getGym<GymDetail | null>(data.id);
+  if (res) {
+    isDetailEdit.value = true;
+    detailId.value = res.id;
+    detailForm.gym_id = res.id;
+    detailForm.description = res.description || "";
+    detailForm.day_pass_price = res.day_pass_price || 0;
+    setExistingImages(res.images || []);
+  }
 
-      // 운영시간 매핑
-      if (data.operating_hours && Array.isArray(data.operating_hours)) {
-        data.operating_hours.forEach((h: any) => {
-          if (hoursMap[h.type]) {
-            hoursMap[h.type] = {
-              open_time: h.open_time,
-              close_time: h.close_time,
-              is_closed: h.is_closed ?? false,
-            };
-          }
-        });
-      }
+  detailForm.name = data.name;
+  detailForm.gym_id = data.id;
+}
 
-      // 최종 폼 세팅
-      this.form = {
-        name: data.name || "",
-        address: data.address || "",
-        address_detail: data.address_detail || "",
-        types: data.gymTypeMap
-          ? data.gymTypeMap.map((t: any) => t.type_id)
-          : [],
-        amenities: data.gymAmenityMaps
-          ? data.gymAmenityMaps.map((a: any) => a.amenity_id)
-          : [],
-        gymBoulderColors: data.gymBoulderColors
-          ? data.gymBoulderColors.map((a: any) => a.boulder_color_id)
-          : [],
-        gymDifficulties: data.gymDifficulties
-          ? data.gymDifficulties.map((a: any) => a.difficulty_id)
-          : [],
-        hours: hoursMap,
-        is_active: data.is_active || "y",
-        lat: data.lat || 0,
-        lon: data.lon || 0,
-        post: data.post || "",
-        sido: data.sido || "",
-      };
+async function saveDetail() {
+  try {
+    const formData = new FormData();
+    formData.append("gym_id", String(detailForm.gym_id));
+    formData.append("description", detailForm.description);
+    formData.append("day_pass_price", String(detailForm.day_pass_price));
+    formData.append("deleteImageIds", JSON.stringify(deleteImageIds.value));
+    appendFilesToFormData(formData);
 
-      this.editId = data.id;
-      this.isEdit = true;
-      this.openModal = true;
-    },
+    if (isDetailEdit.value && detailId.value) {
+      formData.append("id", String(detailId.value));
+      await gymDetailService.update(formData);
+    } else {
+      await gymDetailService.save(formData);
+    }
 
-    // 장소 정보 저장
-    async saveLocation() {
-      try {
-        const payload = {
-          ...this.form,
-        };
+    toast.success("저장 완료");
+    openDetailModal.value = false;
+  } catch (e) {
+    toast.error("저장 실패");
+  }
+}
 
-        // 수정여부 확인
-        if (this.isEdit) {
-          payload.id = this.editId;
-          await api.post("/api/gyms/update", payload);
-        } else {
-          await api.post("/api/gyms/save", payload);
-        }
+async function deleteGym(data: Gym) {
+  const ok = await alertStore.openConfirm(
+    `${data.name} 정보를 삭제하시겠습니까?`,
+    "삭제 확인",
+  );
+  if (!ok) return;
 
-        this.$toast.success("저장되었습니다");
-        this.openModal = false;
+  try {
+    await gymService.delete(data.id);
+    toast.success("삭제 처리 되었습니다");
+    reset();
+  } catch (e) {
+    toast.error("삭제 실패");
+  }
+}
 
-        this.page = 1;
-        this.hasMore = true;
-        this.loadList(false);
-      } catch (e) {
-        this.$toast.error("저장 실패");
-      }
-    },
+function onBookmark(data: Gym) {
+  bookmarkStore.add({
+    key: `${data.id}_0`,
+    id: data.id,
+    route_id: null,
+    name: data.name,
+    address: data.address,
+    address_detail: data.address_detail,
+  });
+  toast.success(`[${data.name}] 북마크 적용되었습니다`);
+}
 
-    initForm() {
-      this.isEdit = false;
-      this.editId = null;
-      this.form = this.getDefaultForm();
-      this.openModal = true;
-    },
+onMounted(async () => {
+  const [types, ams, sidos, markers, colors, diffs] = await Promise.all([
+    gymTypeService.list<GymType[]>(),
+    amenitiesService.list<Amenity[]>(),
+    gymService.sidoGroup<SidoGroupItem[]>(),
+    gymService.list<Gym[]>(),
+    boulderColorService.list<BoulderColor[]>(),
+    difficultyService.list<Difficulty[]>(),
+  ]);
 
-    /* =========================
-       무한스크롤 리스트 로딩
-    ========================== */
-    async loadList(append = false) {
-      if (this.isLoading) return;
-      if (!this.hasMore && append) return;
+  gymTypes.value = types;
+  amenities.value = ams;
+  sidoList.value = sidos;
+  gymMap.value = markers;
+  boulderColors.value = colors;
+  difficulties.value = diffs;
 
-      this.isLoading = true;
-
-      try {
-        const res = await api.post("/api/gyms/pageList", {
-          ...this.search,
-          page: this.page,
-          limit: this.limit,
-        });
-
-        const list = res.data || [];
-        if (append) {
-          this.GYMS = [...this.GYMS, ...list];
-        } else {
-          this.GYMS = list;
-        }
-
-        if (list.length < this.limit) {
-          this.hasMore = false;
-        }
-      } catch (e) {
-        console.error("리스트 로딩 실패", e);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    /* =========================
-       검색 (초기화)
-    ========================== */
-    search_list() {
-      this.page = 1;
-      this.hasMore = true;
-      this.loadList(false);
-    },
-
-    /* =========================
-       삭제
-    ========================== */
-    async deleteGym(data: any) {
-      const ok = await this.$confirm(
-        `${data.name} 정보를 삭제하시겠습니까?`,
-        "삭제 확인",
-      );
-      if (!ok) return;
-
-      try {
-        await api.post("/api/gyms/delete", { id: data.id });
-        this.$toast.success("삭제 처리 되었습니다");
-
-        this.page = 1;
-        this.hasMore = true;
-        this.loadList(false);
-      } catch (e) {
-        this.$toast.error("삭제 실패");
-      }
-    },
-
-    /* =========================
-       기본 폼
-    ========================== */
-    getDefaultForm() {
-      return {
-        name: "",
-        address: "",
-        address_detail: "",
-        types: [],
-        amenities: [],
-        gymBoulderColors: [],
-        gymDifficulties: [],
-        hours: {
-          weekday: {
-            open_time: "10:00",
-            close_time: "22:00",
-            is_closed: false,
-          },
-          weekend: {
-            open_time: "10:00",
-            close_time: "22:00",
-            is_closed: false,
-          },
-          holiday: {
-            open_time: "10:00",
-            close_time: "22:00",
-            is_closed: false,
-          },
-        },
-        is_active: "y",
-        lat: 0,
-        lon: 0,
-        post: "",
-        sido: "",
-      };
-    },
-
-    /* =========================
-       기타 기존 메서드 유지
-       (상세, 저장, 타입/편의시설 로딩 등)
-    ========================== */
-
-    async loadTypes() {
-      const res = await api.post("/api/gymType/list");
-      this.GYM_TYPES = res.data;
-    },
-
-    async loadAmenities() {
-      const res = await api.post("/api/amenities/list");
-      this.AMENITIES = res.data;
-    },
-
-    async loadSidoList() {
-      const res = await api.post("/api/gyms/sidoGroup");
-      this.SIDO = res.data;
-    },
-
-    async loadMapData() {
-      const res = await api.post("/api/gyms/list");
-      this.GYM_MAP = res.data;
-    },
-
-    async loadColor() {
-      const res = await api.post("/api/boulderColor/list");
-      this.COLOR = res.data;
-    },
-
-    async loadDifficulty() {
-      const res = await api.post("/api/difficulty/list");
-      this.DIFFICULTYS = res.data;
-    },
-
-    // 북마크
-    onBookmark(data: any) {
-      let item = {
-        key: `${data.id}_0`,
-        id: data.id,
-        route_id: null,
-        name: data.name,
-        address: data.address,
-        address_detail: data.address_detail,
-      };
-      // 북마크 주입
-      this.bookmarkStore.add(item);
-      this.$toast.success(`[${data.name}] 북마크 적용되었습니다`);
-    },
-  },
-
-  async mounted() {
-    await this.loadTypes();
-    await this.loadAmenities();
-    await this.loadSidoList();
-    await this.loadMapData();
-    await this.loadColor();
-    await this.loadDifficulty();
-
-    await this.loadList(false);
-
-    window.kakao.maps.load(() => {
-      this.geocoder = new window.kakao.maps.services.Geocoder();
-    });
-  },
-};
+  await load(false);
+});
 </script>

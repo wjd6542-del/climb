@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <transition name="fade">
     <button
       v-if="visible"
@@ -10,30 +10,19 @@
   </transition>
 </template>
 
-<script>
-export default {
-  name: "ScrollTop",
-  data() {
-    return {
-      visible: false,
-    };
-  },
-  mounted() {
-    window.addEventListener("scroll", this.handleScroll, { passive: true });
-  },
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
-  },
-  methods: {
-    handleScroll() {
-      this.visible = window.scrollY > 300;
-    },
-    scrollTop() {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    },
-  },
-};
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from "vue";
+
+const visible = ref(false);
+
+function handleScroll() {
+  visible.value = window.scrollY > 300;
+}
+
+function scrollTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+onMounted(() => window.addEventListener("scroll", handleScroll, { passive: true }));
+onBeforeUnmount(() => window.removeEventListener("scroll", handleScroll));
 </script>

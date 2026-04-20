@@ -70,15 +70,13 @@
         </div>
       </div>
 
-      <!-- 🔥 정보 영역 -->
       <div class="mt-6 space-y-5">
-        <!-- 1️⃣ 타입 + 편의시설 -->
         <div
-          v-if="gym.gymTypeMap?.length || gym.gymAmenityMaps?.length"
+          v-if="(gym as any).gymTypeMap?.length || (gym as any).gymAmenityMaps?.length"
           class="flex flex-wrap gap-2"
         >
           <span
-            v-for="item in gym.gymTypeMap"
+            v-for="item in (gym as any).gymTypeMap"
             :key="item.type_id"
             class="tag-primary"
           >
@@ -87,7 +85,7 @@
           </span>
 
           <span
-            v-for="item in gym.gymAmenityMaps"
+            v-for="item in (gym as any).gymAmenityMaps"
             :key="item.amenity_id"
             class="tag-secondary"
           >
@@ -96,33 +94,28 @@
           </span>
         </div>
 
-        <!-- 2️⃣ ROUTE COLOR -->
         <div
-          v-if="gym.gymBoulderColors?.length && mainFlg"
+          v-if="(gym as any).gymBoulderColors?.length && mainFlg"
           class="bg-slate-50 p-4 rounded-2xl border border-slate-100"
         >
           <div class="group-label mb-3">Route Color</div>
           <ColorBadgeList
-            :colors="gym.gymBoulderColors.map((item) => item.boulderColor)"
+            :colors="(gym as any).gymBoulderColors.map((item: any) => item.boulderColor)"
             shape="circle"
           />
         </div>
 
-        <!-- 3️⃣ ROUTES -->
         <div
-          v-if="gym.gymDifficulties?.length && mainFlg"
+          v-if="(gym as any).gymDifficulties?.length && mainFlg"
           class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4"
         >
-          <!-- LEAD -->
           <div
-            v-if="gym.gymDifficulties.some((d) => d.difficulty.code === 'LEAD')"
+            v-if="(gym as any).gymDifficulties.some((d: any) => d.difficulty.code === 'LEAD')"
           >
             <div class="text-[11px] font-bold text-blue-500 mb-2">LEAD</div>
             <div class="flex flex-wrap gap-2">
               <span
-                v-for="item in gym.gymDifficulties.filter(
-                  (d) => d.difficulty.code === 'LEAD',
-                )"
+                v-for="item in (gym as any).gymDifficulties.filter((d: any) => d.difficulty.code === 'LEAD')"
                 :key="'l-' + item.difficulty.id"
                 class="tag-secondary"
               >
@@ -131,20 +124,13 @@
             </div>
           </div>
 
-          <!-- BOULDER -->
           <div
-            v-if="
-              gym.gymDifficulties.some((d) => d.difficulty.code === 'BOULDER')
-            "
+            v-if="(gym as any).gymDifficulties.some((d: any) => d.difficulty.code === 'BOULDER')"
           >
-            <div class="text-[11px] font-bold text-purple-500 mb-2">
-              BOULDER
-            </div>
+            <div class="text-[11px] font-bold text-purple-500 mb-2">BOULDER</div>
             <div class="flex flex-wrap gap-2">
               <span
-                v-for="item in gym.gymDifficulties.filter(
-                  (d) => d.difficulty.code === 'BOULDER',
-                )"
+                v-for="item in (gym as any).gymDifficulties.filter((d: any) => d.difficulty.code === 'BOULDER')"
                 :key="'b-' + item.difficulty.id"
                 class="tag-secondary"
               >
@@ -163,8 +149,7 @@
           >
             <span class="text-sm font-bold text-blue-900">일일 이용권</span>
             <span class="text-lg font-black text-blue-600">
-              {{ detail.day_pass_price.toLocaleString()
-              }}<span class="text-sm font-normal ml-0.5">원</span>
+              {{ detail.day_pass_price.toLocaleString() }}<span class="text-sm font-normal ml-0.5">원</span>
             </span>
           </div>
 
@@ -183,7 +168,7 @@
             <div class="group-label mb-3">Gallery</div>
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
               <div
-                v-for="(img, idx) in detail.images"
+                v-for="img in detail.images"
                 :key="img.id"
                 class="relative aspect-square group/img overflow-hidden rounded-xl border border-gray-200"
               >
@@ -232,102 +217,89 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import ColorBadgeList from "@/components/common/ColorBadgeList.vue";
+import type { Gym, GymDetail } from "@/types";
 
-export default {
-  name: "GymItem",
-  components: { ColorBadgeList },
-  props: {
-    gym: { type: Object, required: true },
-    detail: { type: Object },
-    changeFlg: { type: Boolean, default: false },
-    mainFlg: { type: Boolean, default: false },
-    onDelete: Function,
-    onBookmark: Function,
-    onChange: Function,
-    onDetail: Function,
-  },
-  data() {
-    return {
-      open: false,
-      selectedImage: null,
-    };
-  },
-  computed: {
-    apiUrl() {
-      return import.meta.env.VITE_API_URL;
-    },
-  },
-  methods: {
-    goDetail() {
-      this.$router.push({
-        path: `/locationDetail`,
-        query: {
-          gym_id: this.gym.id,
-        },
-      });
-    },
-    toggle() {
-      this.open = !this.open;
-    },
-    handleBookmark() {
-      this.open = false;
-      this.onBookmark?.(this.gym);
-    },
-    handleChange() {
-      this.open = false;
-      this.onChange?.(this.gym);
-    },
-    handleDetail() {
-      this.open = false;
-      this.onDetail?.(this.gym);
-    },
-    handleDelete() {
-      this.open = false;
-      this.onDelete?.(this.gym);
-    },
-    handleClickOutside(e) {
-      if (!this.$refs.dropdown) return;
-      if (!this.$refs.dropdown.contains(e.target)) {
-        this.open = false;
-      }
-    },
-    openImage(url) {
-      this.selectedImage = url;
-      document.body.style.overflow = "hidden";
-    },
-    closeImage() {
-      this.selectedImage = null;
-      document.body.style.overflow = "";
-    },
-  },
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside);
-  },
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleClickOutside);
-  },
-};
+const props = defineProps<{
+  gym: Gym;
+  detail?: GymDetail | null;
+  changeFlg?: boolean;
+  mainFlg?: boolean;
+  onDelete?: (gym: Gym) => void;
+  onBookmark?: (gym: Gym) => void;
+  onChange?: (gym: Gym) => void;
+  onDetail?: (gym: Gym) => void;
+}>();
+
+const router = useRouter();
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const dropdown = ref<HTMLElement | null>(null);
+const open = ref(false);
+const selectedImage = ref<string | null>(null);
+
+function goDetail() {
+  router.push({ path: `/locationDetail`, query: { gym_id: props.gym.id } });
+}
+
+function toggle() {
+  open.value = !open.value;
+}
+
+function handleBookmark() {
+  open.value = false;
+  props.onBookmark?.(props.gym);
+}
+
+function handleChange() {
+  open.value = false;
+  props.onChange?.(props.gym);
+}
+
+function handleDetail() {
+  open.value = false;
+  props.onDetail?.(props.gym);
+}
+
+function handleDelete() {
+  open.value = false;
+  props.onDelete?.(props.gym);
+}
+
+function handleClickOutside(e: MouseEvent) {
+  if (!dropdown.value) return;
+  if (!dropdown.value.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
+
+function openImage(url: string) {
+  selectedImage.value = url;
+  document.body.style.overflow = "hidden";
+}
+
+function closeImage() {
+  selectedImage.value = null;
+  document.body.style.overflow = "";
+}
+
+onMounted(() => document.addEventListener("click", handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 </script>
 
 <style scoped>
-/* 섹션 라벨 디자인 */
 .group-label {
   @apply text-[10px] font-bold tracking-widest text-gray-400 uppercase italic;
 }
-
-/* 메인 성격 태그 (진한 색상) */
 .tag-primary {
   @apply inline-flex items-center px-2.5 py-1 text-[11px] font-bold bg-gray-800 text-white rounded-lg shadow-sm shadow-gray-200;
 }
-
-/* 보조 성격 태그 (연한 색상) */
 .tag-secondary {
   @apply inline-flex items-center px-2.5 py-1 text-[11px] font-medium bg-white text-gray-600 border border-gray-200 rounded-lg;
 }
-
-/* 드롭다운 메뉴 버튼 */
 .menu-btn {
   @apply w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center active:bg-gray-100;
 }

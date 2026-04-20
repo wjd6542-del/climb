@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div v-if="posts.length === 0" class="text-gray-500">
       <div class="p-5 rounded-xl border bg-white shadow-sm text-center">
@@ -19,21 +19,14 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import PostItem from "./PostItem.vue";
+import type { GymPost } from "@/types";
 
-export default {
-  props: {
-    posts: {
-      type: Array,
-      required: true,
-    },
-    changeFlg: {
-      type: Boolean,
-    },
-    deleteHandler: { type: Function },
-    changeHandler: { type: Function },
-  },
-  components: { PostItem },
-};
+defineProps<{
+  posts: GymPost[];
+  changeFlg?: boolean;
+  deleteHandler?: (post: GymPost) => void;
+  changeHandler?: (post: GymPost) => void;
+}>();
 </script>

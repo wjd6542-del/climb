@@ -1,6 +1,5 @@
-﻿<template>
+<template>
   <div name="list" class="space-y-3">
-    <!-- 🔍 검색 -->
     <div class="relative">
       <input
         v-model="keyword"
@@ -13,7 +12,6 @@
       ></i>
     </div>
 
-    <!-- ❌ 검색 결과 없음 -->
     <div
       v-if="filteredList.length === 0"
       class="p-5 rounded-xl border bg-white shadow-sm text-center"
@@ -21,7 +19,6 @@
       검색 결과가 없습니다.
     </div>
 
-    <!-- 📌 리스트 -->
     <transition-group name="list" tag="div" class="space-y-3">
       <div
         v-for="item in filteredList"
@@ -48,7 +45,7 @@
           <button
             title="북마크 삭제"
             class="text-red-500 hover:text-red-700"
-            @click.stop="remove(item)"
+            @click.stop="removeItem(item)"
           >
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -58,65 +55,52 @@
   </div>
 </template>
 
-<script>
-import { useBookmarkStore } from "@/stores/bookmarkStore";
+<script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
+import { useBookmarkStore } from "@/stores/bookmarkStore";
+import type { BookmarkItem } from "@/types";
 
-export default {
-  name: "BookmarkList",
-  emits: ["close"],
+const emit = defineEmits<{ close: [] }>();
 
-  setup() {
-    const bookmarkStore = useBookmarkStore();
-    const keyword = ref("");
+const bookmarkStore = useBookmarkStore();
+const router = useRouter();
+const toast = useToast();
+const keyword = ref("");
 
-    const filteredList = computed(() => {
-      if (!keyword.value.trim()) {
-        return bookmarkStore.list;
-      }
+const filteredList = computed(() => {
+  if (!keyword.value.trim()) return bookmarkStore.list;
+  const search = keyword.value.toLowerCase();
+  return bookmarkStore.list.filter(
+    (item) =>
+      item.name?.toLowerCase().includes(search) ||
+      item.address?.toLowerCase().includes(search),
+  );
+});
 
-      const search = keyword.value.toLowerCase();
+async function copyAddress(item: BookmarkItem) {
+  try {
+    await navigator.clipboard.writeText(item.address ?? "");
+    toast.success("주소가 클립보드에 복사되었습니다");
+  } catch {
+    toast.error("복사에 실패했습니다");
+  }
+}
 
-      return bookmarkStore.list.filter((item) => {
-        return (
-          item.name?.toLowerCase().includes(search) ||
-          item.address?.toLowerCase().includes(search)
-        );
-      });
-    });
+function removeItem(data: BookmarkItem) {
+  bookmarkStore.remove(data.key);
+  toast.success(`${data.name} 북마크가 삭제 처리 되었습니다`);
+}
 
-    return {
-      bookmarkStore,
-      keyword,
-      filteredList,
-    };
-  },
-
-  methods: {
-    async copyAddress(item) {
-      try {
-        await navigator.clipboard.writeText(item.address);
-        this.$toast?.success("주소가 클립보드에 복사되었습니다");
-      } catch (err) {
-        this.$toast?.error("복사에 실패했습니다");
-      }
+function move(data: BookmarkItem) {
+  router.push({
+    path: `/locationDetail`,
+    query: {
+      gym_id: data.id,
+      route_id: data.route_id ?? undefined,
     },
-
-    remove(data) {
-      this.bookmarkStore.remove(data.key);
-      this.$toast?.success(`${data.name} 북마크가 삭제 처리 되었습니다`);
-    },
-
-    move(data) {
-      this.$router.push({
-        path: `/locationDetail`,
-        query: {
-          gym_id: data.id,
-          route_id: data.route_id || null,
-        },
-      });
-      this.$emit("close");
-    },
-  },
-};
+  });
+  emit("close");
+}
 </script>

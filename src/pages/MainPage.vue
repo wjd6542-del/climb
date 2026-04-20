@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-12">
     <div class="max-w-6xl mx-auto px-6">
-      <!-- 🔎 검색 영역 -->
+      <!-- 검색 -->
       <div class="mb-14">
         <div class="relative max-w-3xl mx-auto">
           <input
@@ -17,12 +17,8 @@
         </div>
       </div>
 
-      <!-- 좌우 영역 -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- 정보공유 -->
-        <section
-          class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-        >
+        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h3
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
@@ -31,17 +27,14 @@
               {{ $t("정보") }}
             </h3>
             <span class="text-xs text-gray-400">
-              {{ $t("최신") }} {{ list.length || 0 }}{{ $t("건") }}
+              {{ $t("최신") }} {{ postList.length || 0 }}{{ $t("건") }}
             </span>
           </div>
 
-          <PostList :posts="list" />
+          <PostList :posts="postList" />
         </section>
 
-        <!-- 장소정보 -->
-        <section
-          class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-        >
+        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h3
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
@@ -66,10 +59,7 @@
           <GymList :gyms="gymList" />
         </section>
 
-        <!-- 난이도 정보 -->
-        <section
-          class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-        >
+        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h3
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
@@ -78,17 +68,14 @@
               {{ $t("난이도") }}
             </h3>
             <span class="text-xs text-gray-400">
-              {{ $t("최신") }} {{ routList.length || 0 }}{{ $t("건") }}
+              {{ $t("최신") }} {{ routeList.length || 0 }}{{ $t("건") }}
             </span>
           </div>
 
-          <RouteList :routs="routList" />
+          <RouteList :routs="routeList" />
         </section>
 
-        <!-- 위치정보 -->
-        <section
-          class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-        >
+        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h3
               class="text-lg font-semibold text-gray-800 flex items-center gap-2"
@@ -103,6 +90,7 @@
 
           <div class="space-y-3">
             <v-chart
+              v-if="chartOption"
               class="w-full h-[350px]"
               :option="chartOption"
               autoresize
@@ -131,130 +119,94 @@
   </div>
 </template>
 
-<script lang="ts">
-import api from "@/lib/api.js";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+
+import { gymService } from "@/api/gymService";
+import { gymPostService } from "@/api/gymPostService";
+import { routeService } from "@/api/routeService";
+
 import PostList from "@/components/gymPost/PostList.vue";
 import GymList from "@/components/gym/GymList.vue";
 import RouteList from "@/components/route/RouteList.vue";
 import KakaoMap from "@/components/common/KakaoMap.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 
-export default {
-  name: "MainPage",
+import type { Gym, GymPost, Route, SidoGroupItem } from "@/types";
 
-  components: {
-    PostList,
-    GymList,
-    RouteList,
-    KakaoMap,
-    BaseModal,
-  },
+const gymList = ref<Gym[]>([]);
+const markerList = ref<Gym[]>([]);
+const postList = ref<GymPost[]>([]);
+const routeList = ref<Route[]>([]);
+const chartOption = ref<Record<string, any> | null>(null);
+const keyword = ref("");
+const openMapModal = ref(false);
 
-  data() {
-    return {
-      gymList: [],
-      markerList: [],
-      list: [],
-      sidoList: [],
-      routList: [],
-      chartOption: null,
-      keyword: "", // 🔥 추가
-      openMapModal: false,
-    };
-  },
+async function loadGymsList() {
+  try {
+    gymList.value = await gymService.list<Gym[]>({ take: 5, keyword: keyword.value });
+  } catch (e) {
+    console.error("장소정보 로드 실패", e);
+  }
+}
 
-  computed: {},
+async function loadGymPostList() {
+  try {
+    postList.value = await gymPostService.list<GymPost[]>({
+      take: 5,
+      keyword: keyword.value,
+    });
+  } catch (e) {
+    console.error("게시물 정보 로딩 실패", e);
+  }
+}
 
-  methods: {
-    async handleSearch() {
-      await Promise.all([this.loadGymsList(), this.loadGymPostList()]);
-    },
-    // 리스트 검색
-    async loadGymsList() {
-      try {
-        const res = await api.post("/api/gyms/list", {
-          take: 5,
-          keyword: this.keyword,
-        });
-        this.gymList = res.data;
-      } catch (e) {
-        console.error("장소정보 로드 실패", e);
-      }
-    },
+async function loadMarkerList() {
+  try {
+    markerList.value = await gymService.list<Gym[]>({});
+  } catch (e) {
+    console.error("마커 정보 로딩 실패", e);
+  }
+}
 
-    // 리스트 검색
-    async loadGymPostList() {
-      try {
-        const res = await api.post("/api/gymPost/list", {
-          take: 5,
-          keyword: this.keyword,
-        });
-        this.list = res.data;
-      } catch (e) {
-        console.error("게시물 정보 로딩 실패", e);
-      }
-    },
+async function loadSidoList() {
+  const sidos = await gymService.sidoGroup<SidoGroupItem[]>();
+  sidos.sort((a, b) => a.count - b.count);
 
-    // 리스트 검색
-    async loadMarkerList() {
-      try {
-        const res = await api.post("/api/gyms/list", {});
-        this.markerList = res.data;
-      } catch (e) {
-        console.error("게시물 정보 로딩 실패", e);
-      }
-    },
-
-    async loadSidoList() {
-      const res = await api.post("/api/gyms/sidoGroup");
-      this.sidoList = res.data;
-
-      // 정렬 처리
-      this.sidoList.sort((a, b) => a.count - b.count);
-
-      this.chartOption = {
-        tooltip: {
-          trigger: "axis",
+  chartOption.value = {
+    tooltip: { trigger: "axis" },
+    grid: { left: "3%", right: "4%", bottom: "3%" },
+    series: [
+      {
+        name: "",
+        type: "pie",
+        radius: ["30%", "55%"],
+        center: ["50%", "40%"],
+        label: {
+          show: true,
+          formatter: (params: any) => `${params.name} (${params.value})`,
         },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "3%",
-        },
+        data: sidos.map((d) => ({ value: d.count, name: d.sido })),
+      },
+    ],
+  };
+}
 
-        series: [
-          {
-            name: "",
-            type: "pie",
-            radius: ["30%", "55%"],
-            center: ["50%", "40%"], // 살짝 아래로
-            label: {
-              show: true,
-              formatter: (params) => {
-                return `${params.name} (${params.value})`;
-              },
-            },
-            data: this.sidoList.map((d) => ({
-              value: d.count,
-              name: d.sido,
-            })),
-          },
-        ],
-      };
-    },
+async function loadRouteList() {
+  routeList.value = await routeService.list<Route[]>({ take: 5 });
+}
 
-    async loadRoutList() {
-      const res = await api.post("/api/route/list", { take: 5 });
-      this.routList = res.data;
-    },
-  },
+async function handleSearch() {
+  await Promise.all([loadGymsList(), loadGymPostList()]);
+}
 
-  async mounted() {
-    await this.loadGymsList();
-    await this.loadGymPostList();
-    await this.loadMarkerList();
-    await this.loadSidoList();
-    await this.loadRoutList();
-  },
-};
+onMounted(async () => {
+  await Promise.all([
+    loadGymsList(),
+    loadGymPostList(),
+    loadMarkerList(),
+    loadSidoList(),
+    loadRouteList(),
+  ]);
+});
 </script>

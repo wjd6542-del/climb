@@ -1,13 +1,28 @@
-﻿import { reactive } from "vue";
+import { reactive } from "vue";
 
-export const alertStore = reactive({
+type AlertType = "alert" | "confirm";
+
+interface AlertState {
+  visible: boolean;
+  title: string;
+  message: string;
+  type: AlertType;
+  resolve: ((value: boolean) => void) | null;
+
+  openAlert(message: string, title?: string): void;
+  openConfirm(message: string, title?: string): Promise<boolean>;
+  ok(): void;
+  cancel(): void;
+}
+
+export const alertStore: AlertState = reactive<AlertState>({
   visible: false,
   title: "",
   message: "",
   type: "alert",
   resolve: null,
 
-  openAlert(message, title = "알림") {
+  openAlert(message: string, title = "알림") {
     alertStore.visible = true;
     alertStore.title = title;
     alertStore.message = message;
@@ -15,8 +30,8 @@ export const alertStore = reactive({
     alertStore.resolve = null;
   },
 
-  openConfirm(message, title = "확인") {
-    return new Promise((resolve) => {
+  openConfirm(message: string, title = "확인"): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
       alertStore.visible = true;
       alertStore.title = title;
       alertStore.message = message;

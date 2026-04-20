@@ -6,7 +6,7 @@
         <h1 class="text-xl font-bold">{{ $t("정보") }}</h1>
         <button
           class="px-3 py-1.5 text-sm rounded bg-blue-500 text-white hover:bg-blue-600"
-          @click="initForm"
+          @click="openCreate"
         >
           <i class="fa-solid fa-plus"></i> {{ $t("글쓰기") }}
         </button>
@@ -21,7 +21,7 @@
             v-model="dateRange"
             :minuteStep="5"
             :showQuickButtons="true"
-            @change="resetAndSearch"
+            @change="reset"
           />
         </div>
 
@@ -33,7 +33,7 @@
             valueKey="id"
             :placeholder="$t('장소를 선택하세요')"
             class="bg-white border border-gray-200 rounded-lg h-[40px]"
-            @change="resetAndSearch"
+            @change="reset"
           />
         </div>
 
@@ -42,21 +42,16 @@
             v-model="search.keyword"
             class="w-full border rounded px-3 py-2 text-sm min-h-[42px]"
             :placeholder="$t('제목 검색')"
-            @change="resetAndSearch"
+            @change="reset"
           />
         </div>
       </div>
 
-      <InfiniteScroll
-        :loading="isLoading"
-        :hasMore="hasMore"
-        @load-more="loadMore"
-      >
-        <!-- 리스트 -->
+      <InfiniteScroll :loading="isLoading" :hasMore="hasMore" @load-more="loadMore">
         <PostList
           :posts="list"
           :changeFlg="true"
-          :changeHandler="dataView"
+          :changeHandler="openEdit"
           :deleteHandler="deletePost"
         />
       </InfiniteScroll>
@@ -196,8 +191,17 @@
     </BaseModal>
   </div>
 </template>
-<script lang="ts">
-import api from "@/lib/api.js";
+
+<script setup lang="ts">
+import { onMounted, reactive, ref } from "vue";
+import { useToast } from "vue-toastification";
+
+import { gymService } from "@/api/gymService";
+import { gymPostService } from "@/api/gymPostService";
+import { useListPage } from "@/composables/useListPage";
+import { useImageUpload } from "@/composables/useImageUpload";
+import { alertStore } from "@/plugins/alert.store";
+
 import SearchSelect from "@/components/common/SearchSelect.vue";
 import Editor from "@/components/common/Editor.vue";
 import DateRangePicker from "@/components/common/DateRangePicker.vue";
@@ -206,241 +210,142 @@ import PostList from "@/components/gymPost/PostList.vue";
 import BaseImage from "@/components/common/BaseImage.vue";
 import InfiniteScroll from "@/components/common/InfiniteScroll.vue";
 
-export default {
-  name: "GymPostPage",
-  components: {
-    PostList,
-    SearchSelect,
-    Editor,
-    DateRangePicker,
-    BaseModal,
-    BaseImage,
-    InfiniteScroll,
-  },
+import type { Gym, GymPost, GymPostForm } from "@/types";
 
-  data() {
-    return {
-      openModal: false,
-      isEdit: false,
-      editId: null as number | null,
+const toast = useToast();
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
-      dateRange: { start: null as Date | null, end: null as Date | null },
+const gymList = ref<Gym[]>([]);
+const openModal = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
-      gymList: [] as any[],
-      list: [] as any[],
+const dateRange = ref<{ start: Date | null; end: Date | null }>({
+  start: null,
+  end: null,
+});
+const search = reactive({ keyword: "", gym_id: "" as number | string });
 
-      search: { keyword: "", gym_id: "" },
+const form = reactive<GymPostForm>({
+  gym_id: "",
+  title: "",
+  content: "",
+  rating: 0,
+});
 
-      form: { gym_id: "", title: "", content: "", rating: 0 },
+const {
+  existingImages,
+  newFiles,
+  newPreviews,
+  deleteImageIds,
+  handleFiles,
+  removeNewImage,
+  removeExistingImage,
+  setExistingImages,
+  resetUpload,
+  appendFilesToFormData,
+} = useImageUpload();
 
-      existingImages: [] as any[],
-      deleteImageIds: [] as number[],
-      newFiles: [] as File[],
-      newPreviews: [] as string[],
-
-      apiUrl: import.meta.env.VITE_API_URL,
-
-      /* =====================
-         무한스크롤 상태
-      ===================== */
-      page: 1,
-      limit: 20,
-      isLoading: false,
-      hasMore: true,
+const { list, isLoading, hasMore, load, loadMore, reset } = useListPage<
+  GymPost,
+  { gym_id: number | string; keyword: string; startDate?: string; endDate?: string }
+>({
+  fetcher: (params) => gymPostService.pageList<GymPost[]>(params),
+  buildParams: () => {
+    const params: {
+      gym_id: number | string;
+      keyword: string;
+      startDate?: string;
+      endDate?: string;
+    } = {
+      gym_id: search.gym_id,
+      keyword: search.keyword,
     };
+    if (dateRange.value.start) {
+      params.startDate = dateRange.value.start.toISOString();
+    }
+    if (dateRange.value.end) {
+      params.endDate = dateRange.value.end.toISOString();
+    }
+    return params;
   },
+});
 
-  methods: {
-    /* 🔥 InfiniteScroll loadMore 추가 */
-    loadMore() {
-      if (this.isLoading || !this.hasMore) return;
+function resetForm() {
+  form.gym_id = "";
+  form.title = "";
+  form.content = "";
+  form.rating = 0;
+  resetUpload();
+  editId.value = null;
+}
 
-      // 🔥 최초 로드 직후 자동 트리거 방지
-      if (this.page === 1 && this.list.length < this.limit) {
-        return;
-      }
+function openCreate() {
+  resetForm();
+  isEdit.value = false;
+  openModal.value = true;
+}
 
-      this.page++;
-      this.loadList(true);
-    },
+function openEdit(data: GymPost) {
+  resetForm();
+  isEdit.value = true;
+  editId.value = data.id;
+  form.gym_id = data.gym_id;
+  form.title = data.title;
+  form.content = data.content;
+  form.rating = data.rating;
+  setExistingImages(data.images || []);
+  openModal.value = true;
+}
 
-    /* =====================
-       무한스크롤 리스트 로딩
-    ===================== */
-    async loadList(append = false) {
-      if (this.isLoading) return;
-      if (!this.hasMore && append) return;
+async function submit() {
+  try {
+    const formData = new FormData();
+    formData.append("gym_id", String(form.gym_id));
+    formData.append("title", form.title);
+    formData.append("content", form.content);
+    formData.append("rating", String(form.rating));
 
-      this.isLoading = true;
+    if (isEdit.value && editId.value) {
+      formData.append("id", String(editId.value));
+      formData.append("deleteImageIds", JSON.stringify(deleteImageIds.value));
+    }
 
-      try {
-        const payload: any = {
-          gym_id: this.search.gym_id,
-          keyword: this.search.keyword,
-          page: this.page,
-          limit: this.limit,
-        };
+    appendFilesToFormData(formData);
 
-        if (this.dateRange?.start) {
-          payload.startDate = this.dateRange.start.toISOString();
-        }
-        if (this.dateRange?.end) {
-          payload.endDate = this.dateRange.end.toISOString();
-        }
+    if (isEdit.value) {
+      await gymPostService.update(formData);
+      toast.success("수정 완료");
+    } else {
+      await gymPostService.save(formData);
+      toast.success("등록 완료");
+    }
 
-        const res = await api.post("/api/gymPost/pageList", payload);
-        const data = res.data || [];
+    openModal.value = false;
+    reset();
+  } catch (err: any) {
+    toast.error(err?.message || "처리 실패");
+  }
+}
 
-        if (append) {
-          this.list = [...this.list, ...data];
-        } else {
-          this.list = data;
-        }
+async function deletePost(data: GymPost) {
+  const ok = await alertStore.openConfirm(
+    `${data.title} 정보를 삭제하시겠습니까?`,
+    "삭제 확인",
+  );
+  if (!ok) return;
 
-        if (data.length < this.limit) {
-          this.hasMore = false;
-        }
-      } catch (e) {
-        console.error("리스트 로딩 실패", e);
-      } finally {
-        this.isLoading = false;
-      }
-    },
+  await gymPostService.delete(data.id);
+  toast.success("삭제처리 되었습니다");
+  reset();
+}
 
-    /* =====================
-       검색 초기화
-    ===================== */
-    resetAndSearch() {
-      this.page = 1;
-      this.hasMore = true;
-      this.loadList(false);
-    },
+async function loadGymsList() {
+  gymList.value = await gymService.list<Gym[]>({});
+}
 
-    initForm() {
-      this.isEdit = false;
-      this.editId = null;
-      this.form = { gym_id: "", title: "", content: "", rating: 0 };
-      this.existingImages = [];
-      this.deleteImageIds = [];
-      this.newFiles = [];
-      this.newPreviews = [];
-      this.openModal = true;
-    },
-
-    dataView(data: any) {
-      this.isEdit = true;
-      this.editId = data.id;
-
-      this.form = {
-        gym_id: data.gym_id,
-        title: data.title,
-        content: data.content,
-        rating: data.rating,
-      };
-
-      this.existingImages = data.images || [];
-      this.deleteImageIds = [];
-      this.newFiles = [];
-      this.newPreviews = [];
-
-      this.openModal = true;
-    },
-
-    removeExistingImage(img: any) {
-      this.deleteImageIds.push(img.id);
-      this.existingImages = this.existingImages.filter((i) => i.id !== img.id);
-    },
-
-    handleFiles(event: Event) {
-      const input = event.target as HTMLInputElement;
-      if (!input.files) return;
-
-      const MAX_SIZE = 5 * 1024 * 1024;
-
-      Array.from(input.files).forEach((file) => {
-        if (file.size > MAX_SIZE) {
-          this.$toast.error("파일은 5MB 이하만 가능");
-          return;
-        }
-
-        this.newFiles.push(file);
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.newPreviews.push(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
-    },
-
-    removeNewImage(index: number) {
-      this.newFiles.splice(index, 1);
-      this.newPreviews.splice(index, 1);
-    },
-
-    async submit() {
-      try {
-        const formData = new FormData();
-
-        formData.append("gym_id", this.form.gym_id);
-        formData.append("title", this.form.title);
-        formData.append("content", this.form.content);
-        formData.append("rating", String(this.form.rating));
-
-        if (this.isEdit && this.editId) {
-          formData.append("id", String(this.editId));
-          formData.append(
-            "deleteImageIds",
-            JSON.stringify(this.deleteImageIds),
-          );
-        }
-
-        this.newFiles.forEach((file) => {
-          formData.append("images", file);
-        });
-
-        if (this.isEdit) {
-          await api.post("/api/gymPost/update", formData);
-          this.$toast.success("수정 완료");
-        } else {
-          await api.post("/api/gymPost/save", formData);
-          this.$toast.success("등록 완료");
-        }
-
-        this.openModal = false;
-
-        this.page = 1;
-        this.hasMore = true;
-        this.loadList(false);
-      } catch (err: any) {
-        this.$toast.error(err.message || "처리 실패");
-      }
-    },
-
-    async loadGymsList() {
-      const res = await api.post("/api/gyms/list", {});
-      this.gymList = res.data;
-    },
-
-    async deletePost(data: any) {
-      const ok = await this.$confirm(
-        `${data.title} 정보를 삭제하시겠습니까?`,
-        "삭제 확인",
-      );
-      if (!ok) return;
-
-      await api.post("/api/gymPost/delete", { id: data.id });
-      this.$toast.success("삭제처리 되었습니다");
-
-      this.page = 1;
-      this.hasMore = true;
-      this.loadList(false);
-    },
-  },
-
-  async mounted() {
-    await this.loadGymsList();
-    await this.loadList(false);
-  },
-};
+onMounted(async () => {
+  await loadGymsList();
+  await load(false);
+});
 </script>

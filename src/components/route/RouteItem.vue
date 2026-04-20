@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="relative group">
     <div
       ref="card"
@@ -10,7 +10,7 @@
             <h3
               class="font-bold text-lg text-gray-900 truncate group-hover:text-blue-600 transition-colors"
             >
-              {{ rout.gym.name }}
+              {{ rout.gym?.name }}
             </h3>
           </div>
           <div class="flex items-center gap-2">
@@ -19,9 +19,9 @@
             >
               LV.{{ rout.difficulty }}
             </span>
-            <span class="text-sm font-medium text-gray-600 truncate">{{
-              rout.route_name
-            }}</span>
+            <span class="text-sm font-medium text-gray-600 truncate">
+              {{ rout.route_name }}
+            </span>
           </div>
         </div>
 
@@ -68,11 +68,11 @@
       <div class="flex flex-wrap gap-1.5 mb-4">
         <span class="badge-blue">
           <i class="fa-solid fa-mountain text-[10px] opacity-70"></i>
-          {{ climb_type_map[rout.climb_type] }}
+          {{ CLIMB_TYPE_MAP[rout.climb_type as keyof typeof CLIMB_TYPE_MAP] }}
         </span>
         <span class="badge-gray">
           <i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>
-          {{ environment_map[rout.environment] }}
+          {{ ENVIRONMENT_MAP[rout.environment as keyof typeof ENVIRONMENT_MAP] }}
         </span>
       </div>
 
@@ -128,92 +128,63 @@
   </div>
 </template>
 
-<script>
-import DateTime from "@/components/common/DateTime.vue";
-import BaseDropdown from "@/components/common/BaseDropdown.vue";
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import type { Route } from "@/types";
 
-export default {
-  name: "RouteItem",
-  components: {
-    DateTime,
-    BaseDropdown,
-  },
-  props: {
-    rout: { type: Object, required: true },
-    changeFlg: { type: Boolean, default: false },
-    onDelete: Function,
-    onBookmark: Function,
-    onChange: Function,
-  },
-  emits: ["delete", "edit"],
-  data() {
-    return {
-      open: false,
-      climb_type_map: {
-        LEAD: "리드",
-        BOULDER: "볼더링",
-      },
-      environment_map: {
-        INDOOR: "실내",
-        OUTDOOR: "실외",
-        NATURE: "자연",
-      },
-      selectedImage: null,
-      actionItems: [
-        {
-          value: "edit",
-          label: "수정",
-          icon: "fa-solid fa-pen-to-square",
-        },
-        {
-          value: "delete",
-          label: "삭제",
-          icon: "fa-solid fa-trash",
-          danger: true,
-        },
-      ],
-    };
-  },
-  computed: {
-    apiUrl() {
-      return import.meta.env.VITE_API_URL;
-    },
-  },
-  methods: {
-    goDetail() {
-      this.$router.push({
-        path: `/locationDetail`,
-        query: {
-          gym_id: this.rout.gym_id,
-          route_id: this.rout.id,
-        },
-      });
-    },
-    toggle() {
-      this.open = !this.open;
-    },
-    handleBookmark() {
-      this.open = false;
-      this.onBookmark?.(this.rout);
-    },
-    handleChange() {
-      this.open = false;
-      this.onChange?.(this.rout);
-    },
-    handleDelete() {
-      this.open = false;
-      this.onDelete?.(this.rout);
-    },
-    openImage(url) {
-      this.selectedImage = url;
-      document.body.style.overflow = "hidden";
-    },
-    closeImage() {
-      this.selectedImage = null;
-      document.body.style.overflow = "";
-    },
-  },
-};
+const CLIMB_TYPE_MAP = { LEAD: "리드", BOULDER: "볼더링" } as const;
+const ENVIRONMENT_MAP = { INDOOR: "실내", OUTDOOR: "실외", NATURE: "자연" } as const;
+
+const props = defineProps<{
+  rout: Route;
+  changeFlg?: boolean;
+  onDelete?: (route: Route) => void;
+  onBookmark?: (route: Route) => void;
+  onChange?: (route: Route) => void;
+}>();
+
+const router = useRouter();
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const open = ref(false);
+const selectedImage = ref<string | null>(null);
+
+function goDetail() {
+  router.push({
+    path: `/locationDetail`,
+    query: { gym_id: props.rout.gym_id, route_id: props.rout.id },
+  });
+}
+
+function toggle() {
+  open.value = !open.value;
+}
+
+function handleBookmark() {
+  open.value = false;
+  props.onBookmark?.(props.rout);
+}
+
+function handleChange() {
+  open.value = false;
+  props.onChange?.(props.rout);
+}
+
+function handleDelete() {
+  open.value = false;
+  props.onDelete?.(props.rout);
+}
+
+function openImage(url: string) {
+  selectedImage.value = url;
+  document.body.style.overflow = "hidden";
+}
+
+function closeImage() {
+  selectedImage.value = null;
+  document.body.style.overflow = "";
+}
 </script>
 
 <style scoped>
@@ -225,27 +196,10 @@ export default {
   @apply inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium bg-gray-50 text-gray-500 rounded-md border border-gray-200;
 }
 
-/* 텍스트 내용 줄바꿈 및 스타일 */
 .prose {
   word-break: break-all;
 }
 
-/* 섹션 라벨 디자인 */
-.group-label {
-  @apply text-[10px] font-bold tracking-widest text-gray-400 uppercase italic;
-}
-
-/* 메인 성격 태그 (진한 색상) */
-.tag-primary {
-  @apply inline-flex items-center px-2.5 py-1 text-[11px] font-bold bg-gray-800 text-white rounded-lg shadow-sm shadow-gray-200;
-}
-
-/* 보조 성격 태그 (연한 색상) */
-.tag-secondary {
-  @apply inline-flex items-center px-2.5 py-1 text-[11px] font-medium bg-white text-gray-600 border border-gray-200 rounded-lg;
-}
-
-/* 드롭다운 메뉴 버튼 */
 .menu-btn {
   @apply w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center active:bg-gray-100;
 }

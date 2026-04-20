@@ -1,14 +1,12 @@
-﻿<template>
+<template>
   <div ref="wrapper" class="relative w-full">
-    <!-- 트리거 -->
     <div :class="triggerClasses" @click="toggle">
       <div class="flex-1 text-sm truncate flex items-center gap-2">
-        <!-- 선택된 색상 미리보기 -->
         <span
           v-if="selectedItem"
           class="w-4 h-4 rounded border border-gray-300"
           :style="{
-            backgroundColor: selectedItem.hex_code || selectedItem[valueKey],
+            backgroundColor: (selectedItem as any).hex_code || (selectedItem as any)[valueKey],
           }"
         ></span>
 
@@ -18,7 +16,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- 삭제 버튼 -->
         <button
           v-if="modelValue !== null && modelValue !== ''"
           @click.stop="clear"
@@ -34,12 +31,10 @@
       </div>
     </div>
 
-    <!-- 드롭다운 -->
     <div
       v-if="open"
       class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-[9999]"
     >
-      <!-- 검색 영역 -->
       <div class="p-2 border-b">
         <input
           ref="searchInput"
@@ -50,26 +45,24 @@
         />
       </div>
 
-      <!-- 리스트 -->
       <div class="max-h-60 overflow-y-auto">
         <div
           v-for="item in filteredOptions"
-          :key="item[valueKey]"
+          :key="(item as any)[valueKey]"
           class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer flex justify-between items-center"
           @click="select(item)"
         >
           <div class="flex items-center gap-2">
-            <!-- 색상 박스 -->
             <span
               class="w-4 h-4 rounded border border-gray-300"
-              :style="{ backgroundColor: item.hex_code || item[valueKey] }"
+              :style="{ backgroundColor: (item as any).hex_code || (item as any)[valueKey] }"
             ></span>
 
-            <span>{{ item[labelKey] }}</span>
+            <span>{{ (item as any)[labelKey] }}</span>
           </div>
 
           <i
-            v-if="item[valueKey] === modelValue"
+            v-if="(item as any)[valueKey] === modelValue"
             class="fa-solid fa-check text-blue-500 text-xs"
           ></i>
         </div>
@@ -85,111 +78,94 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "SearchSelect",
-  inheritAttrs: false,
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs } from "vue";
 
-  props: {
-    modelValue: [String, Number, null],
-    options: { type: Array, required: true },
-    labelKey: { type: String, default: "name" },
-    valueKey: { type: String, default: "code" },
+interface Props {
+  modelValue: string | number | null;
+  options: any[];
+  labelKey?: string;
+  valueKey?: string;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+}
 
-    placeholder: {
-      type: String,
-      default: "선택하세요",
-    },
+const props = withDefaults(defineProps<Props>(), {
+  labelKey: "name",
+  valueKey: "code",
+  placeholder: "선택하세요",
+  searchPlaceholder: "검색...",
+  emptyText: "검색 결과가 없습니다",
+});
 
-    searchPlaceholder: {
-      type: String,
-      default: "검색...",
-    },
+const emit = defineEmits<{
+  "update:modelValue": [value: string | number];
+  change: [value: string | number];
+}>();
 
-    emptyText: {
-      type: String,
-      default: "검색 결과가 없습니다",
-    },
-  },
+defineOptions({ inheritAttrs: false });
+const attrs = useAttrs();
 
-  emits: ["update:modelValue", "change"],
+const wrapper = ref<HTMLElement | null>(null);
+const searchInput = ref<HTMLInputElement | null>(null);
+const open = ref(false);
+const keyword = ref("");
 
-  data() {
-    return {
-      open: false,
-      keyword: "",
-    };
-  },
+const selectedItem = computed(() =>
+  props.options.find((o: any) => o[props.valueKey] === props.modelValue),
+);
+const selectedLabel = computed(() =>
+  selectedItem.value ? (selectedItem.value as any)[props.labelKey] : "",
+);
 
-  computed: {
-    selectedItem() {
-      return this.options.find((o) => o[this.valueKey] === this.modelValue);
-    },
+const filteredOptions = computed(() => {
+  if (!keyword.value) return props.options;
+  return props.options.filter((o: any) =>
+    String(o[props.labelKey]).toLowerCase().includes(keyword.value.toLowerCase()),
+  );
+});
 
-    selectedLabel() {
-      return this.selectedItem ? this.selectedItem[this.labelKey] : "";
-    },
+const triggerClasses = computed(() => [
+  "flex justify-between items-center px-3 py-2 rounded cursor-pointer transition-all",
+  open.value
+    ? "border-blue-500 ring-2 ring-blue-100"
+    : "border border-gray-300 hover:border-gray-400",
+  attrs.class as string | undefined,
+]);
 
-    filteredOptions() {
-      if (!this.keyword) return this.options;
+function toggle() {
+  open.value = !open.value;
+  keyword.value = "";
+  nextTick(() => {
+    if (open.value && searchInput.value) {
+      searchInput.value.focus();
+    }
+  });
+}
 
-      return this.options.filter((o) =>
-        String(o[this.labelKey])
-          .toLowerCase()
-          .includes(this.keyword.toLowerCase()),
-      );
-    },
+function select(item: any) {
+  const value = item[props.valueKey];
+  emit("update:modelValue", value);
+  emit("change", value);
+  open.value = false;
+  keyword.value = "";
+}
 
-    triggerClasses() {
-      return [
-        "flex justify-between items-center px-3 py-2 rounded cursor-pointer transition-all",
-        this.open
-          ? "border-blue-500 ring-2 ring-blue-100"
-          : "border border-gray-300 hover:border-gray-400",
-        this.$attrs.class,
-      ];
-    },
-  },
+function clear() {
+  emit("update:modelValue", "");
+  emit("change", "");
+  open.value = false;
+}
 
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside, true);
-  },
+function handleClickOutside(e: MouseEvent) {
+  if (!wrapper.value?.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
 
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleClickOutside, true);
-  },
-
-  methods: {
-    toggle() {
-      this.open = !this.open;
-      this.keyword = "";
-
-      this.$nextTick(() => {
-        if (this.open && this.$refs.searchInput) {
-          this.$refs.searchInput.focus();
-        }
-      });
-    },
-
-    select(item) {
-      const value = item[this.valueKey];
-      this.$emit("update:modelValue", value);
-      this.$emit("change", value);
-      this.open = false;
-      this.keyword = "";
-    },
-
-    clear() {
-      this.$emit("update:modelValue", "");
-      this.$emit("change", "");
-      this.open = false;
-    },
-
-    handleClickOutside(e) {
-      if (!this.$refs.wrapper.contains(e.target)) {
-        this.open = false;
-      }
-    },
-  },
-};
+onMounted(() => document.addEventListener("click", handleClickOutside, true));
+onBeforeUnmount(() =>
+  document.removeEventListener("click", handleClickOutside, true),
+);
 </script>
